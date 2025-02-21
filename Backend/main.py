@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import termios
 from tarfile import version
 
 import paho.mqtt.client as mqtt
@@ -85,14 +86,14 @@ async def read_serial():
                 # Publication immédiate sur le topic MQTT
                 if mqtt_connected:
                     try:
-                        mqtt_client.publish(MQTT_TOPIC, payload=data)
+                        mqtt_client.publish(MQTT_TOPIC, payload=latest_text)
                     except Exception as e:
                         print(f"Erreur de publication sur MQTT : {e}")
 
         except serial.SerialException as e:
             print(f"Erreur de lecture sur le port série : {e}")
-            continue
-
+        except termios.error as e:
+            print(f"Erreur d'entrée/sortie sur le port série : {e}")
         await asyncio.sleep(1)
 
 
