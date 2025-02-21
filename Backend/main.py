@@ -70,7 +70,7 @@ def read_serial():
         try:
             ser.flush()  # Nettoyer le buffer
             line = ser.readline()  # Lire une ligne sur le port série
-            if line > 0 and line != "0A":
+            if line and line != "0A":
                 # Conversion de la trame en chaîne hexadécimale en majuscules
                 # On peut utiliser la méthode .hex() pour simplifier
                 data = line.hex().upper()
