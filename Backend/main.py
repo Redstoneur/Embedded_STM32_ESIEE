@@ -67,9 +67,12 @@ def read_serial():
         print(f"Erreur d'ouverture du port série : {e}")
         sys.exit(1)
 
+    error = False
+
     while True:
         try:
-            ser.flush()  # Nettoyer le buffer
+            if not error:
+                ser.flush()  # Nettoyer le buffer
             line = ser.readline()  # Lire une ligne sur le port série
             if line and line != "0A":
                 # Conversion de la trame en chaîne hexadécimale en majuscules
@@ -92,7 +95,10 @@ def read_serial():
 
         except serial.SerialException as e:
             print(f"Erreur de lecture sur le port série : {e}")
+            error = True
             continue
+        else:
+            error = False
 
         time.sleep(0.1)
 
