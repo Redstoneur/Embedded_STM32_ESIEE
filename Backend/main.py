@@ -1,7 +1,6 @@
 import os
 import sys
-import threading
-import time
+import asyncio
 from tarfile import version
 
 import paho.mqtt.client as mqtt
@@ -48,7 +47,7 @@ mqtt_connected = connect_mqtt()
 
 # ---------------- Fonction de lecture sur le port série ----------------
 
-def read_serial():
+async def read_serial():
     """
     Lit en continu une trame sur le port série et la convertit en texte hexadécimal.
     Met à jour la variable globale 'latest_text' et publie la trame sur MQTT.
@@ -99,12 +98,8 @@ def read_serial():
             error = True
             continue
 
-        time.sleep(1)
+        await asyncio.sleep(1)
 
-
-# Démarrer la lecture du port série dans un thread séparé
-serial_thread = threading.Thread(target=read_serial, daemon=True)
-serial_thread.start()
 
 # ---------------- API FastAPI ----------------
 
@@ -118,7 +113,7 @@ app = FastAPI(
 
 
 @app.get("/latest")
-def get_latest_text():
+async def get_latest_text():
     """
     Renvoie la dernière trame textuelle reçue depuis le port série.
     """
@@ -128,4 +123,6 @@ def get_latest_text():
 # ---------------- Exécution de l'API ----------------
 
 if __name__ == "__main__":
+    loop = asyncio.get_event_loop()
+    loop.create_task(read_serial())
     uvicorn.run(app, host=API_HOST, port=API_PORT)
