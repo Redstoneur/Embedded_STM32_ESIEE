@@ -1,7 +1,6 @@
 import asyncio
 import os
 import sys
-import termios
 from tarfile import version
 
 import paho.mqtt.client as mqtt
@@ -54,25 +53,27 @@ async def read_serial():
     Met à jour la variable globale 'latest_text' et publie la trame sur MQTT.
     """
     global latest_text
-    try:
-        ser = serial.Serial(
-            port=SERIAL_PORT,
-            baudrate=BAUD_RATE,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=1
-        )
-    except serial.SerialException as e:
-        print(f"Erreur d'ouverture du port série : {e}")
-        sys.exit(1)
+    init: bool = True
 
     while True:
-        try:
+        ser: serial.Serial = None
+        if init:
             try:
-                ser.flush()  # Vider le buffer d'entrée
-            except termios.error as e:
-                print(f"Erreur de flush du port série : {e}")
+                ser = serial.Serial(
+                    port=SERIAL_PORT,
+                    baudrate=BAUD_RATE,
+                    parity=serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE,
+                    bytesize=serial.EIGHTBITS,
+                    timeout=1
+                )
+            except serial.SerialException as e:
+                print(f"Erreur d'ouverture du port série : {e}")
+                sys.exit(1)
+            init = False
+
+        try:
+            ser.flush()  # Vider le buffer d'entrée
             line = ser.readline()  # Lire une ligne sur le port série
             if line:
                 # Conversion de la trame en chaîne hexadécimale en majuscules
@@ -104,6 +105,8 @@ async def read_serial():
 
         except serial.SerialException as e:
             print(f"Erreur de lecture sur le port série : {e}")
+            ser.close()
+            init = True
         await asyncio.sleep(1)
 
 
