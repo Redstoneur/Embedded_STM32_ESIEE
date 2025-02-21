@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    devices:
+      - "/dev/ttyS0:/dev/ttyS0"
+      - "/dev/ttyAMA0:/dev/ttyAMA0"
+    environment:
+        - PYTHONUNBUFFERED=1
+        - SERIAL_PORT=/dev/ttyAMA0
+        - BAUD_RATE=115200
+        - MQTT_TOPIC=rfid/text
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
