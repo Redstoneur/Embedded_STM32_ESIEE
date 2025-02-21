@@ -1,6 +1,6 @@
+import asyncio
 import os
 import sys
-import asyncio
 from tarfile import version
 
 import paho.mqtt.client as mqtt
@@ -122,7 +122,8 @@ async def get_latest_text():
 
 # ---------------- Exécution de l'API ----------------
 
+loop = asyncio.get_event_loop()
+loop.create_task(read_serial())
+
 if __name__ == "__main__":
-    loop = asyncio.get_event_loop()
-    loop.create_task(read_serial())
     uvicorn.run(app, host=API_HOST, port=API_PORT)
