@@ -90,6 +90,7 @@ async def read_serial():
 
                 if data != latest_text and data != "" and data != "\r\n":
                     latest_text = data
+                    print(f"Dernière trame : {latest_text}")
                 else:
                     continue
 
@@ -97,6 +98,7 @@ async def read_serial():
                 if mqtt_connected:
                     try:
                         mqtt_client.publish(MQTT_TOPIC, payload=latest_text)
+                        print(f"Trame publiée sur MQTT : {latest_text}")
                     except Exception as e:
                         print(f"Erreur de publication sur MQTT : {e}")
 
