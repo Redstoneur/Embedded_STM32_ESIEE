@@ -70,9 +70,7 @@ async def read_serial():
 
     while True:
         try:
-            if not error:
-                ser.flush()  # Nettoyer le buffer
-            error = False
+            ser.flush()  # Nettoyer le buffer
             line = ser.readline()  # Lire une ligne sur le port série
             if line and line != "0A":
                 # Conversion de la trame en chaîne hexadécimale en majuscules
@@ -95,7 +93,6 @@ async def read_serial():
 
         except serial.SerialException as e:
             print(f"Erreur de lecture sur le port série : {e}")
-            error = True
             continue
 
         await asyncio.sleep(1)
