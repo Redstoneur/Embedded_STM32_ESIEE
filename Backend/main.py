@@ -66,12 +66,11 @@ async def read_serial():
         print(f"Erreur d'ouverture du port série : {e}")
         sys.exit(1)
 
-    ser.flushInput()  # Vider le buffer d'entrée
-
     while True:
         try:
+            ser.flushInput()  # Vider le buffer d'entrée
             line = ser.readline()  # Lire une ligne sur le port série
-            if line and line != "0A":
+            if line and not line.startswith("0A"):
                 # Conversion de la trame en chaîne hexadécimale en majuscules
                 # On peut utiliser la méthode .hex() pour simplifier
                 data = line.hex().upper()
