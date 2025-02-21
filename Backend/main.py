@@ -11,7 +11,7 @@ from fastapi import FastAPI
 # ---------------- Configuration ----------------
 
 # Configuration du port série (adapté aux broches Rx/Tx)
-SERIAL_PORT = os.getenv("SERIAL_PORT", "/dev/ttyAMA0")
+SERIAL_PORT = os.getenv("SERIAL_PORT", "/dev/serial0")
 BAUD_RATE = int(os.getenv("BAUD_RATE", 115200))
 
 # Configuration MQTT
