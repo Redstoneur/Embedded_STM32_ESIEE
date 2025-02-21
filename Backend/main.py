@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import termios
 from tarfile import version
 
 import paho.mqtt.client as mqtt
@@ -75,7 +76,7 @@ async def read_serial():
         try:
             try:
                 ser.flush()  # Vider le buffer d'entrée
-            except serial.SerialException as e:
+            except termios.error as e:
                 print(f"Erreur de flush du port série : {e}")
             line = ser.readline()  # Lire une ligne sur le port série
             if line:
