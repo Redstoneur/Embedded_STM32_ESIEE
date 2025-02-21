@@ -67,26 +67,31 @@ def read_serial():
         sys.exit(1)
 
     while True:
-        ser.flush()  # Nettoyer le buffer
-        line = ser.readline() or b""  # Lire une ligne sur le port série
-        if line:
-            # Conversion de la trame en chaîne hexadécimale en majuscules
-            # On peut utiliser la méthode .hex() pour simplifier
-            data = line.hex().upper()
+        try:
+            ser.flush()  # Nettoyer le buffer
+            line = ser.readline()  # Lire une ligne sur le port série
+            if line or len(line) > 0 and line != "0A" :
+                # Conversion de la trame en chaîne hexadécimale en majuscules
+                # On peut utiliser la méthode .hex() pour simplifier
+                data = line.hex().upper()
 
-            # sauvegarde de la trame hexadécimale décodée en texte
-            latest_text = bytes.fromhex(data).decode('utf-8')
+                # sauvegarde de la trame hexadécimale décodée en texte
+                latest_text = bytes.fromhex(data).decode('utf-8')
 
-            # Affichage de la trame reçue et du texte décodé
-            print(f"Trame reçue : {data}")
-            print(f"Texte décodé : {latest_text}")
+                # Affichage de la trame reçue et du texte décodé
+                print(f"Trame reçue : {data}")
+                print(f"Texte décodé : {latest_text}")
 
-            # Publication immédiate sur le topic MQTT
-            if mqtt_connected:
-                try:
-                    mqtt_client.publish(MQTT_TOPIC, payload=data)
-                except Exception as e:
-                    print(f"Erreur de publication sur MQTT : {e}")
+                # Publication immédiate sur le topic MQTT
+                if mqtt_connected:
+                    try:
+                        mqtt_client.publish(MQTT_TOPIC, payload=data)
+                    except Exception as e:
+                        print(f"Erreur de publication sur MQTT : {e}")
+
+        except serial.SerialException as e:
+            print(f"Erreur de lecture sur le port série : {e}")
+            break
 
         time.sleep(0.1)
 
