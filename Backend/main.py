@@ -91,7 +91,7 @@ def read_serial():
 
         except serial.SerialException as e:
             print(f"Erreur de lecture sur le port série : {e}")
-            break
+            continue
 
         time.sleep(0.1)
 
