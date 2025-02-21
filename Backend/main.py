@@ -70,17 +70,24 @@ async def read_serial():
         try:
             ser.flushInput()  # Vider le buffer d'entrée
             line = ser.readline()  # Lire une ligne sur le port série
-            if line and not line.startswith("0A"):
+            if line:
                 # Conversion de la trame en chaîne hexadécimale en majuscules
                 # On peut utiliser la méthode .hex() pour simplifier
                 data = line.hex().upper()
 
-                # sauvegarde de la trame hexadécimale décodée en texte
-                latest_text = bytes.fromhex(data).decode('utf-8')
-
-                # Affichage de la trame reçue et du texte décodé
+                # Affichage de la trame hexadécimale
                 print(f"Trame reçue : {data}")
-                print(f"Texte décodé : {latest_text}")
+
+                # Décode la trame hexadécimale en texte
+                data = bytes.fromhex(data).decode('utf-8')
+
+                # Affichage de la trame décodée
+                print(f"Texte décodé : {data}")
+
+                if data != latest_text and data != "" and data != "\r\n":
+                    latest_text = data
+                else:
+                    continue
 
                 # Publication immédiate sur le topic MQTT
                 if mqtt_connected:
