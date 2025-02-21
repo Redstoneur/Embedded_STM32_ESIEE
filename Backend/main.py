@@ -73,7 +73,10 @@ async def read_serial():
             init = False
 
         try:
-            ser.flush()  # Vider le buffer d'entrée
+            try:
+                ser.flush()  # Vider le buffer d'entrée
+            except serial.SerialException as e:
+                print(f"Erreur de flush du port série : {e}")
             line = ser.readline()  # Lire une ligne sur le port série
             if line:
                 # Conversion de la trame en chaîne hexadécimale en majuscules
@@ -89,7 +92,7 @@ async def read_serial():
                 # Affichage de la trame décodée
                 print(f"Texte décodé : {data}")
 
-                if data != latest_text and data != "" and data != "\r\n":
+                if data != latest_text and data != "" and data != "\r\n" and data != "\n" and data != "\r":
                     latest_text = data
                     print(f"Dernière trame : {latest_text}")
                 else:
