@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import termios
 from tarfile import version
 
 import paho.mqtt.client as mqtt
@@ -68,7 +69,12 @@ async def read_serial():
 
     while True:
         try:
-            ser.flush()  # Vider le buffer d'entrée
+            try:
+                ser.flush()  # Vider le buffer d'entrée
+            except termios.error as e:
+                print(f"Erreur de flush du port série : {e}")
+                await asyncio.sleep(1)
+                continue
             line = ser.readline()  # Lire une ligne sur le port série
             if line:
                 # Conversion de la trame en chaîne hexadécimale en majuscules
