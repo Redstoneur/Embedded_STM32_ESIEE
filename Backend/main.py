@@ -68,19 +68,26 @@ def read_serial():
 
     while True:
         ser.flush()  # Nettoyer le buffer
-        line = ser.readline()
+        line = ser.readline() or b""  # Lire une ligne sur le port série
         if line:
             # Conversion de la trame en chaîne hexadécimale en majuscules
             # On peut utiliser la méthode .hex() pour simplifier
             data = line.hex().upper()
-            latest_text = data
+
+            # sauvegarde de la trame hexadécimale décodée en texte
+            latest_text = bytes.fromhex(data).decode('utf-8')
+
+            # Affichage de la trame reçue et du texte décodé
             print(f"Trame reçue : {data}")
+            print(f"Texte décodé : {latest_text}")
+
             # Publication immédiate sur le topic MQTT
             if mqtt_connected:
                 try:
                     mqtt_client.publish(MQTT_TOPIC, payload=data)
                 except Exception as e:
                     print(f"Erreur de publication sur MQTT : {e}")
+
         time.sleep(0.1)
 
 
