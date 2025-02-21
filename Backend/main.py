@@ -2,6 +2,7 @@ import os
 import sys
 import threading
 import time
+from tarfile import version
 
 import paho.mqtt.client as mqtt
 import serial
@@ -102,7 +103,13 @@ serial_thread.start()
 
 # ---------------- API FastAPI ----------------
 
-app = FastAPI(title="API de récupération de trame")
+app = FastAPI(
+    title="API de récupération de trame",
+    description="API pour récupérer la dernière trame reçue depuis le port série.",
+    version="1.0.0",
+    docs_url="/docs",  # URL pour Swagger UI
+    redoc_url="/redoc"  # URL pour ReDoc
+)
 
 
 @app.get("/latest")
