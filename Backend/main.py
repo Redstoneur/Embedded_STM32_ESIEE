@@ -66,8 +66,6 @@ async def read_serial():
         print(f"Erreur d'ouverture du port série : {e}")
         sys.exit(1)
 
-    error = False
-
     while True:
         try:
             ser.flush()  # Nettoyer le buffer
