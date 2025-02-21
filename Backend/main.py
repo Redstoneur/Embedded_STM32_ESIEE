@@ -28,8 +28,17 @@ latest_text = ""
 
 # Création du client MQTT
 mqtt_client = mqtt.Client()
-mqtt_client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
-mqtt_client.loop_start()  # Démarrer la boucle MQTT en tâche de fond
+
+def connect_mqtt():
+    try:
+        mqtt_client.connect(MQTT_BROKER, MQTT_PORT, keepalive=60)
+        mqtt_client.loop_start()  # Démarrer la boucle MQTT en tâche de fond
+        return True
+    except Exception as e:
+        print(f"Erreur de connexion au serveur MQTT : {e}")
+        return False
+
+mqtt_connected = connect_mqtt()
 
 # ---------------- Fonction de lecture sur le port série ----------------
 
@@ -62,7 +71,11 @@ def read_serial():
             latest_text = data
             print(f"Trame reçue : {data}")
             # Publication immédiate sur le topic MQTT
-            mqtt_client.publish(MQTT_TOPIC, payload=data)
+            if mqtt_connected:
+                try:
+                    mqtt_client.publish(MQTT_TOPIC, payload=data)
+                except Exception as e:
+                    print(f"Erreur de publication sur MQTT : {e}")
         time.sleep(0.1)
 
 # Démarrer la lecture du port série dans un thread séparé
