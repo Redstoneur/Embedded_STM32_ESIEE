@@ -99,7 +99,7 @@ def read_serial():
             error = True
             continue
 
-        time.sleep(0.1)
+        time.sleep(1)
 
 
 # Démarrer la lecture du port série dans un thread séparé
