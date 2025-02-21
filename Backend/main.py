@@ -68,7 +68,7 @@ async def read_serial():
 
     while True:
         try:
-            ser.flushInput()  # Vider le buffer d'entrée
+            ser.flush()  # Vider le buffer d'entrée
             line = ser.readline()  # Lire une ligne sur le port série
             if line:
                 # Conversion de la trame en chaîne hexadécimale en majuscules
