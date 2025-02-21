@@ -54,9 +54,9 @@ async def read_serial():
     """
     global latest_text
     init: bool = True
+    ser: serial.Serial = None
 
     while True:
-        ser: serial.Serial = None
         if init:
             try:
                 ser = serial.Serial(
