@@ -1,7 +1,9 @@
+from pydantic import BaseModel
+
 from LedRGB import LedRGB
 
 
-class CapteurInformation:
+class CapteurInformation(BaseModel):
     Temperature: float  # en degrés Celsius
     Humidity: float  # en pourcentage
     RGB: LedRGB  # état de la LED RGB

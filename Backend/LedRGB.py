@@ -1,4 +1,7 @@
-class LedRGB:
+from pydantic import BaseModel
+
+
+class LedRGB(BaseModel):
     Red: int  # entre 0 et 255
     Green: int  # entre 0 et 255
     Blue: int  # entre 0 et 255
