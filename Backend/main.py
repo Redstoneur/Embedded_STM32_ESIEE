@@ -56,6 +56,8 @@ typeCapteurInformation: dict = {
     "Button": bool
 }
 
+commandeBuffer: list[str] = []
+
 # ---------------- Initialisation MQTT ----------------
 
 # Création du client MQTT
@@ -132,11 +134,13 @@ def save_data(data: dict):
     capteurInformation = CapteurInformation.from_dict(values)
 
 
-async def read_serial():
+async def serial_controller():
     """
     Lit en continu une trame sur le port série et la convertit en texte hexadécimal.
     Met à jour la variable globale 'latest_text' et publie la trame sur MQTT.
     """
+
+    global commandeBuffer
 
     latest_text: str = ""
     init: bool = True
@@ -211,6 +215,17 @@ async def read_serial():
             print(f"Erreur de lecture sur le port série : {e}")
             ser.close()
             init = True
+
+        try:
+            if len(commandeBuffer) > 0:
+                commande = commandeBuffer.pop(0)
+                ser.write(commande.encode())
+                print(f"Commande envoyée : {commande}")
+        except serial.SerialException as e:
+            print(f"Erreur d'écriture sur le port série : {e}")
+            ser.close()
+            init = True
+
         await asyncio.sleep(1)
 
 
@@ -236,7 +251,7 @@ app.add_middleware(
 @app.get("/")
 async def get_latest_text():
     """
-    Renvoie la dernière trame textuelle reçue depuis le port série.
+    Hello World
     """
     return "Hello World"
 
@@ -297,10 +312,50 @@ async def get_button() -> bool:
     return capteurInformation.Button
 
 
+@app.post("/capteur/buzzer")
+async def post_buzzer(state: bool) -> dict:
+    """
+    Active ou désactive le buzzer du capteur.
+    """
+    global commandeBuffer
+    commandeBuffer.append(f"[BUZZER#SWITCH:{state}]\n")
+    return {"buzzer": state}
+
+
+@app.post("/capteur/led")
+async def post_led(state: bool) -> dict:
+    """
+    Active ou désactive la LED du capteur.
+    """
+    global commandeBuffer
+    commandeBuffer.append(f"[LED#SWITCH:{state}]\n")
+    return {"led": state}
+
+
+@app.post("/capteur/rgb/color")
+async def post_rgb_color(red: int, green: int, blue: int) -> dict:
+    """
+    Change la couleur de la LED RGB du capteur.
+    """
+    global commandeBuffer
+    commandeBuffer.append(f"[RGB#COLOR:{red},{green},{blue}]\n")
+    return {"red": red, "green": green, "blue": blue}
+
+
+@app.post("/capteur/rgb/switch")
+async def post_rgb_switch(state: bool) -> dict:
+    """
+    Active ou désactive la LED RGB du capteur.
+    """
+    global commandeBuffer
+    commandeBuffer.append(f"[RGB#SWITCH:{state}]\n")
+    return {"state": state}
+
+
 # ---------------- Exécution de l'API ----------------
 
 loop = asyncio.get_event_loop()
-loop.create_task(read_serial())
+loop.create_task(serial_controller())
 
 if __name__ == "__main__":
     uvicorn.run(app, host=API_HOST, port=API_PORT)
