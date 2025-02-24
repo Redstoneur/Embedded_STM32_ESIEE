@@ -204,6 +204,7 @@ async def read_serial():
             print(f"Erreur de lecture sur le port série : {e}")
             ser.close()
             init = True
+        await asyncio.sleep(1)
 
 
 # ---------------- API FastAPI ----------------
