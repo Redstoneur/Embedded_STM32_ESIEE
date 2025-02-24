@@ -163,6 +163,16 @@ async def serial_controller():
             init = False
 
         try:
+            if len(commandeBuffer) > 0:
+                commande = commandeBuffer.pop(0)
+                ser.write(commande.encode())
+                print(f"Commande envoyée : {commande}")
+        except serial.SerialException as e:
+            print(f"Erreur d'écriture sur le port série : {e}")
+            ser.close()
+            init = True
+
+        try:
             try:
                 ser.flush()  # Vider le buffer d'entrée
             except termios.error as e:
@@ -213,16 +223,6 @@ async def serial_controller():
 
         except serial.SerialException as e:
             print(f"Erreur de lecture sur le port série : {e}")
-            ser.close()
-            init = True
-
-        try:
-            if len(commandeBuffer) > 0:
-                commande = commandeBuffer.pop(0)
-                ser.write(commande.encode())
-                print(f"Commande envoyée : {commande}")
-        except serial.SerialException as e:
-            print(f"Erreur d'écriture sur le port série : {e}")
             ser.close()
             init = True
 
