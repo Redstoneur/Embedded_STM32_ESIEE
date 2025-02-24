@@ -183,6 +183,11 @@ async def read_serial():
                 latest_text = data
                 print(f"Dernière trame : {latest_text}")
 
+                # vérifier si la trame n'est pas un int
+                if latest_text.isdigit():
+                    print(f"La trame est un entier : {latest_text}")
+                    continue
+
                 # verifier sur la trame est bien un texte JSON
                 try:
                     tempCapteurInformation = json.loads(latest_text)
