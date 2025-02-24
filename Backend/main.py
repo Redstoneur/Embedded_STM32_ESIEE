@@ -172,7 +172,7 @@ async def read_serial():
                 print(f"Trame reçue : {trame}")
 
                 # Décode la trame hexadécimale en texte
-                data = bytes.fromhex(trame).decode('utf-8')
+                data = bytes.fromhex(trame).decode('utf-8', errors='ignore')
 
                 # Affichage de la trame décodée
                 print(f"Texte décodé : {data}")
