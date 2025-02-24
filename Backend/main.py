@@ -9,6 +9,7 @@ import paho.mqtt.client as mqtt
 import serial
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from CapteurInformation import CapteurInformation
 from LedRGB import LedRGB
@@ -223,6 +224,14 @@ app = FastAPI(
     redoc_url="/redoc"  # URL pour ReDoc
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Permettre toutes les origines, à ajuster selon vos besoins
+    allow_credentials=True,
+    allow_methods=["*"],  # Permettre toutes les méthodes HTTP
+    allow_headers=["*"],  # Permettre tous les en-têtes
+)
+
 
 @app.get("/")
 async def get_latest_text():
@@ -231,12 +240,14 @@ async def get_latest_text():
     """
     return "Hello World"
 
+
 @app.get("/capteur")
 async def get_capteur() -> CapteurInformation:
     """
     Renvoie les informations du capteur.
     """
     return capteurInformation
+
 
 @app.get("/capteur/temperature")
 async def get_temperature() -> float:
@@ -245,12 +256,14 @@ async def get_temperature() -> float:
     """
     return capteurInformation.Temperature
 
+
 @app.get("/capteur/humidity")
 async def get_humidity() -> float:
     """
     Renvoie l'humidité du capteur.
     """
     return capteurInformation.Humidity
+
 
 @app.get("/capteur/rgb")
 async def get_rgb() -> LedRGB:
@@ -259,6 +272,7 @@ async def get_rgb() -> LedRGB:
     """
     return capteurInformation.RGB
 
+
 @app.get("/capteur/led")
 async def get_led() -> bool:
     """
@@ -266,12 +280,14 @@ async def get_led() -> bool:
     """
     return capteurInformation.Led
 
+
 @app.get("/capteur/buzzer")
 async def get_buzzer() -> bool:
     """
     Renvoie l'état du buzzer du capteur.
     """
     return capteurInformation.Buzzer
+
 
 @app.get("/capteur/button")
 async def get_button() -> bool:
