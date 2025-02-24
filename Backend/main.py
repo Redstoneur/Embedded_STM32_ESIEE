@@ -312,7 +312,7 @@ async def get_button() -> bool:
     return capteurInformation.Button
 
 
-@app.post("/capteur/buzzer")
+@app.put("/capteur/buzzer")
 async def post_buzzer(state: bool) -> dict:
     """
     Active ou désactive le buzzer du capteur.
@@ -322,7 +322,7 @@ async def post_buzzer(state: bool) -> dict:
     return {"buzzer": state}
 
 
-@app.post("/capteur/led")
+@app.put("/capteur/led")
 async def post_led(state: bool) -> dict:
     """
     Active ou désactive la LED du capteur.
@@ -332,7 +332,7 @@ async def post_led(state: bool) -> dict:
     return {"led": state}
 
 
-@app.post("/capteur/rgb/color")
+@app.put("/capteur/rgb/color")
 async def post_rgb_color(red: int, green: int, blue: int) -> dict:
     """
     Change la couleur de la LED RGB du capteur.
@@ -342,7 +342,7 @@ async def post_rgb_color(red: int, green: int, blue: int) -> dict:
     return {"red": red, "green": green, "blue": blue}
 
 
-@app.post("/capteur/rgb/switch")
+@app.put("/capteur/rgb/switch")
 async def post_rgb_switch(state: bool) -> dict:
     """
     Active ou désactive la LED RGB du capteur.
