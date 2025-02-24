@@ -186,6 +186,7 @@ async def read_serial():
                 # verifier sur la trame est bien un texte JSON
                 try:
                     tempCapteurInformation = json.loads(latest_text)
+                    print(f"Capteur Information : {tempCapteurInformation}")
                 except json.JSONDecodeError as e:
                     print(f"Erreur de décodage JSON : {e}")
                     continue
