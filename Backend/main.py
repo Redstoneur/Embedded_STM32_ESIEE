@@ -32,12 +32,12 @@ API_PORT = int(os.getenv("API_PORT", 8000))
 
 # Dictionary to store sensor information
 capteurInformation: CapteurInformation = CapteurInformation(
-    temperature=0.0,
-    humidity=0.0,
-    rgb=LedRGB(0, 0, 0, False),
-    led=False,
-    buzzer=False,
-    button=False
+    Temperature=0.0,
+    Humidity=0.0,
+    RGB=LedRGB(Red=0, Green=0, Blue=0, State=False),
+    Led=False,
+    Buzzer=False,
+    Button=False
 )
 
 # Dictionary to define the type of sensor information
