@@ -256,6 +256,14 @@ async def get_latest_text():
     return "Hello World"
 
 
+@app.get("/commande/buffer")
+async def get_commande_buffer() -> list[str]:
+    """
+    Renvoie la liste des commandes en attente d'envoi.
+    """
+    return commandeBuffer
+
+
 @app.get("/capteur")
 async def get_capteur() -> CapteurInformation:
     """
