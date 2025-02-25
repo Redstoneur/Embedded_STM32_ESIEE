@@ -5,6 +5,11 @@ import on from "./assets/Switch_ON.webp";
 
 const apiUrl = "http://192.168.170.90:8000/capteur";
 
+const buzzerStatus = ref<boolean>(false);
+const redValue = ref<number>(0);
+const greenValue = ref<number>(0);
+const blueValue = ref<number>(0);
+
 interface typeCapteur {
   Humidity: number;
   Temperature: number;
@@ -13,6 +18,7 @@ interface typeCapteur {
     Blue: number;
     Green: number;
     Red: number;
+    State: boolean;
   };
 }
 
@@ -24,6 +30,81 @@ const fetchData = async (): Promise<void> => {
     if (!response.ok)
       throw new Error("Erreur lors de la récupération des données");
     capteurs.value = await response.json();
+
+    // Initialiser les valeurs locales avec celles récupérées de l'API
+    if (capteurs.value) {
+      redValue.value = capteurs.value.RGB.Red;
+      greenValue.value = capteurs.value.RGB.Green;
+      blueValue.value = capteurs.value.RGB.Blue;
+    }
+  } catch (err) {
+    console.error("Erreur:", err);
+  }
+};
+
+const toggleBuzzer = async (): Promise<void> => {
+  if (!capteurs.value) return;
+
+  const newState = !capteurs.value.Buzzer; // Inverser l'état actuel
+
+  try {
+    const response = await fetch(`${apiUrl}/buzzer?state=${newState}`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text(); // Récupérer le message d'erreur de l'API
+      throw new Error(`Erreur API: ${errorMessage}`);
+    }
+  } catch (err) {
+    console.error("Erreur:", err);
+  }
+};
+
+
+const toggleSwitch = async (): Promise<void> => {
+  if (!capteurs.value) return;
+
+  const newState = !capteurs.value.RGB.State; // Inverser l'état actuel
+
+  try {
+    const response = await fetch(`${apiUrl}/rgb/switch?state=${newState}`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text(); // Récupérer le message d'erreur de l'API
+      throw new Error(`Erreur API: ${errorMessage}`);
+    }
+  } catch (err) {
+    console.error("Erreur:", err);
+  }
+};
+
+const sendCapteurValue = async (): Promise<void> => {
+  if (!capteurs.value?.RGB) return;
+
+  try {
+    const response = await fetch(
+      `${apiUrl}/rgb/color?red=${redValue.value}&green=${greenValue.value}&blue=${blueValue.value}`,
+      {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorMessage = await response.text(); // Récupérer le message d'erreur de l'API
+      throw new Error(`Erreur API: ${errorMessage}`);
+    }
   } catch (err) {
     console.error("Erreur:", err);
   }
@@ -44,6 +125,9 @@ onMounted(fetchData);
           :class="{ buzzeColor: capteurs.Buzzer, dark: !capteurs.Buzzer }"
         ></button>
         <img :src="capteurs.Buzzer ? on : off" />
+        <button class="buttton-buzzer" @click="toggleBuzzer">
+          {{ capteurs.Buzzer ? "Éteindre" : "Allumer" }}
+        </button>
       </div>
 
       <!-- Température -->
@@ -63,40 +147,25 @@ onMounted(fetchData);
         <div>
           <div class="rgb-item">
             <img src="./assets/LED_rouge.webp" />
-            <input type="number" min="1" max="255" v-model="capteurs.RGB.Red" />
+            <input type="number" min="0" max="255" v-model="redValue" />
           </div>
 
           <div class="rgb-item">
             <img src="./assets/LED_verte.webp" />
-            <input
-              type="number"
-              min="1"
-              max="255"
-              v-model="capteurs.RGB.Green"
-            />
+            <input type="number" min="0" max="255" v-model="greenValue" />
           </div>
 
           <div class="rgb-item">
             <img src="./assets/LED_bleue.webp" />
-            <input
-              type="number"
-              min="1"
-              max="255"
-              v-model="capteurs.RGB.Blue"
-            />
+            <input type="number" min="0" max="255" v-model="blueValue" />
           </div>
+          <button @click="sendCapteurValue">↻</button>
         </div>
       </div>
-      <img
-        class="image-rbd"
-        :src="
-          capteurs?.RGB?.Blue < 1 &&
-          capteurs?.RGB.Green < 1 &&
-          capteurs?.RGB.Red < 1
-            ? off
-            : on
-        "
-      />
+      <img class="image-rbd" :src="capteurs?.RGB?.State ? on : off" />
+      <button @click="toggleSwitch">
+        {{ capteurs.RGB.State ? "Éteindre" : "Allumer" }}
+      </button>
     </div>
   </div>
 </template>
@@ -187,6 +256,13 @@ img {
   border: none;
   border-radius: 50%;
   cursor: pointer;
+}
+.buzzer-container .buttton-buzzer {
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  background: gray;
 }
 .image-rbd {
   width: 90px;
