@@ -11,6 +11,14 @@ static void MX_GPIO_Init(void);
 static void MX_UART4_Init(void);
 void UART_SendString(char *str);
 
+volatile uint8_t rx_flag = 0;
+char rx_buffer[50];
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
+    if (huart->Instance == UART4) {
+        rx_flag = 1;
+        HAL_UART_Receive_IT(&huart4, (uint8_t*)rx_buffer, sizeof(rx_buffer));
+    }
+}
 
 DMA_HandleTypeDef htim1;
 #define TEMP_SENSOR_GPIO_Port GPIOA
@@ -102,35 +110,53 @@ int main(void)
   int rgbr2=255,rgbg2=255,rgbb2=255;
   bool rgb2=false,led2=false,buz2=false,but2=false;
 
+  HAL_UART_Receive_IT(&huart4, (uint8_t*)rx_buffer, sizeof(rx_buffer));
+
   while (1){
 
-	  if(DHT11_Start()){
-	  	  	        RHI = DHT11_Read(); // Relative humidity integral
-	  	  	        RHD = DHT11_Read(); // Relative humidity decimal
-	  	  	        TCI = DHT11_Read(); // Celsius integral
-	  	  	        TCD = DHT11_Read(); // Celsius decimal
-	  	  	        SUM = DHT11_Read(); // Check sum
-	  	  	        if (RHI + RHD + TCI + TCD == SUM)
-	  	  	        {
-	  	  	          // Can use RHI and TCI for any purposes if whole number only needed
-	  	  	          tCelsius = (float)TCI + (float)(TCD/10.0);
-	  	  	          Temp2=tCelsius;
-	  	  	          RH = (float)RHI + (float)(RHD/10.0);
-	  	  	          RH2=RH;
+    if(DHT11_Start()){
+	  RHI = DHT11_Read();
+	  RHD = DHT11_Read();
+	  TCI = DHT11_Read();
+	  TCD = DHT11_Read();
+	  SUM = DHT11_Read();
+	  if (RHI + RHD + TCI + TCD == SUM){
+	  	tCelsius = (float)TCI + (float)(TCD/10.0);
+	  	Temp2=tCelsius;
+	  	RH = (float)RHI + (float)(RHD/10.0);
+	  	RH2=RH;
 
-	  	  	          tFahrenheit = tCelsius * 9/5 + 32;
-	  	  	          // Can use tCelsius, tFahrenheit and RH for any purposes
-	  	  	          TFI = tFahrenheit;  // Fahrenheit integral
-	  	  	          TFD = tFahrenheit*10-TFI*10; // Fahrenheit decimal
-	  	  	          printf("%d.%d C   ", TCI, TCD);
-	  	  	          printf("%d.%d F   ", TFI, TFD);
-	  	  	          char *buf = (char *)malloc(sizeof(char)*100);
-	  	  	          //sprintf(buf,"%d.%d C\n", TCI, TCD);
-	  	  	          //HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
-	  	  	          //sprintf(buf,"%d.%d %%\n", RHI, RHD);
-	  	  	          //HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
-	  	  	        }
-	  	  	      }
+	  	tFahrenheit = tCelsius * 9/5 + 32;
+        TFI = tFahrenheit;
+	  	TFD = tFahrenheit*10-TFI*10;
+	  	printf("%d.%d C   ", TCI, TCD);
+	  	printf("%d.%d F   ", TFI, TFD);
+	  }
+	}
+
+    uint8_t buffer[200];
+    HAL_UART_Receive(&huart4, buffer, sizeof(buffer), HAL_MAX_DELAY);
+    sprintf(
+      uart_buf,
+      "recue:%s %d\n",
+      buffer,strlen(buffer)
+    );
+    UART_SendString(uart_buf);
+
+	if (strlen(buffer) > 0) {
+		if (strncmp(buffer, "[LED#SWITCH:true]", 6) == 0) {led2 = true;UART_SendString("LED activée\n");}
+		else if (strncmp(buffer, "[LED#SWITCH:false]", 7) == 0) {led2 = false;UART_SendString("LED désactivée\n");}
+		else if (strncmp(buffer, "BUZZER ON", 9) == 0) {buz2 = true;UART_SendString("Buzzer activé\n");}
+		else if (strncmp(buffer, "BUZZER OFF", 10) == 0) {buz2 = false;UART_SendString("Buzzer désactivé\n");}
+		else if (strncmp(buffer, "RGB ", 4) == 0) {
+		  sscanf(buffer, "RGB R%d G%d B%d", &rgbr2, &rgbg2, &rgbb2);
+		  UART_SendString("Couleur RGB mise à jour\n");
+		}
+		else {
+		  UART_SendString("Commande inconnue\n");
+		}
+		memset(buffer, 0, sizeof(buffer));
+	}
 
     float RH=RH2, Temp=Temp2;
     int rgbr=rgbr2,rgbg=rgbg2,rgbb=rgbb2;
@@ -142,8 +168,12 @@ int main(void)
       Temp, RH, rgbr, rgbg, rgbb, rgb? "true" : "false", led? "true" : "false", buz? "true" : "false", but? "true" : "false"
     );
     UART_SendString(uart_buf);
-    HAL_Delay(2000);
-    if (HAL_UART_Receive(&huart4, (uint8_t*)rx_buffer, 1, 100) == HAL_OK){HAL_UART_Transmit(&huart4, (uint8_t*)rx_buffer, 1, HAL_MAX_DELAY);}
+
+	HAL_Delay(2000);
+
+    if (HAL_UART_Receive(&huart4, (uint8_t*)rx_buffer, 1, 100) == HAL_OK){
+    	HAL_UART_Transmit(&huart4, (uint8_t*)rx_buffer, 1, HAL_MAX_DELAY);
+    }
 
   }
 }
@@ -181,7 +211,7 @@ static void MX_GPIO_Init(void){
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOH_CLK_ENABLE();
+  //__HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
