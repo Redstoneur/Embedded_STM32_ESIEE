@@ -5,7 +5,6 @@ import on from "./assets/Switch_ON.webp";
 
 const apiUrl = "http://192.168.170.90:8000/capteur";
 
-const buzzerStatus = ref<boolean>(false);
 const redValue = ref<number>(0);
 const greenValue = ref<number>(0);
 const blueValue = ref<number>(0);
