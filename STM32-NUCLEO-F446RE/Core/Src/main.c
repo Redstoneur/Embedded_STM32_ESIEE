@@ -144,7 +144,7 @@ int main(void) {
         if (sizeof(buffer) != 200) {
             sprintf(
                     uart_buf,
-                    "recue:%s %d\n",
+                    "[DEBUG] Received %d bytes: %s\n",
                     buffer, sizeof(buffer)
             );
             UART_SendString(uart_buf);
