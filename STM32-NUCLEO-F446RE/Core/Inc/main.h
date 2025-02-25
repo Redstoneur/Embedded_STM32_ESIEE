@@ -63,6 +63,8 @@ void Error_Handler(void);
 #define RGBTED_GPIO_Port GPIOA
 #define RGBGREEN_Pin GPIO_PIN_0
 #define RGBGREEN_GPIO_Port GPIOB
+#define TEMP_Pin GPIO_PIN_10
+#define TEMP_GPIO_Port GPIOC
 #define TEMP_SENSOR_Pin GPIO_PIN_5
 #define TEMP_SENSOR_GPIO_Port GPIOB
 
