@@ -156,7 +156,7 @@ onMounted(fetchData);
       <div class="buzzer-container">
         <img src="./assets/Radiateur.webp" />
         <button
-          :class="{ buzzeColor: capteurs.Buzzer, dark: !capteurs.Buzzer }"
+          :class="{ buzzeColor: capteurs.Led, dark: !capteurs.Buzzer }"
         ></button>
         <img :src="capteurs.Led ? on : off" />
         <button class="buttton-buzzer" @click="toggleRadiateur">
