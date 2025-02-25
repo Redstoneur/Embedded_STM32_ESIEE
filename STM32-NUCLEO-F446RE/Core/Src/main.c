@@ -21,7 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,6 +59,20 @@ float RH = 0;
 uint8_t TFI = 0;
 uint8_t TFD = 0;
 char strCopy[15];
+
+int rgbr = 255;
+int rgbg = 30;
+int rgbb = 150;
+
+bool rgb = false;
+bool led = false;
+bool buz = false;
+bool but = false;
+
+int temp_threshold = 25;
+
+char rx_buffer[1], uart_buf[120]
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,7 +82,7 @@ static void MX_UART4_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
+void UART_SendString(char *str);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -172,38 +188,95 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim1);
   HAL_UART_Transmit(&huart2, "Start\r\n", 28, 1000u);
+
+  UART_SendString("[DEBUG] STM32 USART6 Initialized!\n");
+  HAL_UART_Receive_IT(&huart4, (uint8_t *) rx_buffer, sizeof(rx_buffer));
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  if(DHT11_Start())
-	 	  	      {
-	 	  	        RHI = DHT11_Read(); // Relative humidity integral
-	 	  	        RHD = DHT11_Read(); // Relative humidity decimal
-	 	  	        TCI = DHT11_Read(); // Celsius integral
-	 	  	        TCD = DHT11_Read(); // Celsius decimal
-	 	  	        SUM = DHT11_Read(); // Check sum
-	 	  	        if (RHI + RHD + TCI + TCD == SUM)
-	 	  	        {
-	 	  	          // Can use RHI and TCI for any purposes if whole number only needed
-	 	  	          tCelsius = (float)TCI + (float)(TCD/10.0);
-	 	  	          tFahrenheit = tCelsius * 9/5 + 32;
-	 	  	          RH = (float)RHI + (float)(RHD/10.0);
-	 	  	          // Can use tCelsius, tFahrenheit and RH for any purposes
-	 	  	          TFI = tFahrenheit;  // Fahrenheit integral
-	 	  	          TFD = tFahrenheit*10-TFI*10; // Fahrenheit decimal
-	 	  	          printf("%d.%d C   ", TCI, TCD);
-	 	  	          printf("%d.%d F   ", TFI, TFD);
-	 	  	          char *buf = (char *)malloc(sizeof(char)*100);
-	 	  	          sprintf(buf,"%d.%d C\n", TCI, TCD);
-	 	  	          HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
-	 	  	          sprintf(buf,"%d.%d %%\n", RHI, RHD);
-	 	  	          HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
-	 	  	        }
-	 	  	      }
-	 	  	      HAL_Delay(2000);
+      if (DHT11_Start()) {
+          RHI = DHT11_Read(); // Relative humidity integral
+          RHD = DHT11_Read(); // Relative humidity decimal
+          TCI = DHT11_Read(); // Celsius integral
+          TCD = DHT11_Read(); // Celsius decimal
+          SUM = DHT11_Read(); // Check sum
+          if (RHI + RHD + TCI + TCD == SUM) {
+              // Can use RHI and TCI for any purposes if whole number only needed
+              tCelsius = (float) TCI + (float) (TCD / 10.0);
+              tFahrenheit = tCelsius * 9 / 5 + 32;
+              RH = (float) RHI + (float) (RHD / 10.0);
+              // Can use tCelsius, tFahrenheit and RH for any purposes
+              TFI = tFahrenheit;  // Fahrenheit integral
+              TFD = tFahrenheit * 10 - TFI * 10; // Fahrenheit decimal
+              printf("%d.%d C   ", TCI, TCD);
+              printf("%d.%d F   ", TFI, TFD);
+              char *buf = (char *) malloc(sizeof(char) * 100);
+              sprintf(buf, "%d.%d C\n", TCI, TCD);
+              HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
+              sprintf(buf, "%d.%d %%\n", RHI, RHD);
+              HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
+          }
+      }
+      HAL_Delay(2000);
+
+      uint8_t buffer[200];
+      HAL_UART_Receive(&huart4, buffer, sizeof(buffer), HAL_MAX_DELAY);
+      if (sizeof(buffer) != 200) {
+          sprintf(
+                  uart_buf,
+                  "[DEBUG] Received %d bytes: %s\n",
+                  buffer, sizeof(buffer)
+          );
+          UART_SendString(uart_buf);
+          if (sizeof(buffer) > 0) {
+              if (strncmp(buffer, "[LED#SWITCH:True]", 6) == 0) {
+                  led = true;
+                  UART_SendString("[DEBUG] LED activée\n");
+              } else if (strncmp(buffer, "[LED#SWITCH:False]", 6) == 0) {
+                  led = false;
+                  UART_SendString("[DEBUG] LED désactivée\n");
+              } else if (strncmp(buffer, "[BUZZER#SWITCH:True]", 6) == 0) {
+                  buz = true;
+                  UART_SendString("[DEBUG] Buzzer activé\n");
+              } else if (strncmp(buffer, "[BUZZER#SWITCH:False]", 6) == 0) {
+                  buz = false;
+                  UART_SendString("[DEBUG] Buzzer désactivé\n");
+              } else if (strncmp(buffer, "[RGB#SWITCH:True]", 6) == 0) {
+                  rgb = true;
+                  UART_SendString("[DEBUG] RGB activé\n");
+              } else if (strncmp(buffer, "[RGB#SWITCH:False]", 6) == 0) {
+                  rgb = false;
+                  UART_SendString("[DEBUG] RGB désactivé\n");
+              } else if (strncmp(buffer, "[RGB#COLOR:", 6) == 0) {
+                  sscanf(buffer, "[RGB#COLOR:%d,%d,%d]", &rgbr, &rgbg, &rgbb);
+                  UART_SendString("[DEBUG] Couleur RGB mise à jour\n");
+              } else { UART_SendString("[DEBUG] Commande inconnue\n"); }
+              memset(buffer, 0, sizeof(buffer));
+          }
+      }
+
+      sprintf(
+              uart_buf,
+              "{\"Temperature\":%d.%d,\"Humidity\":%d.%d,\"RGB\":{\"red\":%d,\"green\":%d,\"blue\":%d,\"state\":%s},\"Led\":%s,\"Buzzer\":%s,\"Button\":%s,\"TemperatureThreshold\":%d}\n",
+              TCI, TCD, // Temperature
+              RHI, RHD, // Humidity
+              rgbr, rgbg, rgbb, // RGB color
+              rgb ? "true" : "false", // RGB state
+              led ? "true" : "false", // Led state
+              buz ? "true" : "false", // Buzzer state
+              but ? "true" : "false", // Button state
+              temp_threshold // Temperature threshold
+      );
+      UART_SendString(uart_buf);
+
+      HAL_Delay(2000);
+
+      if (HAL_UART_Receive(&huart4, (uint8_t *) rx_buffer, 1, 100) == HAL_OK) {
+          HAL_UART_Transmit(&huart4, (uint8_t *) rx_buffer, 1, HAL_MAX_DELAY);
+      }
 
     /* USER CODE END WHILE */
 
@@ -430,6 +503,8 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void UART_SendString(char *str) { HAL_UART_Transmit(&huart4, (uint8_t *) str, strlen(str), HAL_MAX_DELAY); }
 
 /* USER CODE END 4 */
 

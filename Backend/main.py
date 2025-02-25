@@ -38,7 +38,8 @@ capteurInformation: CapteurInformation = CapteurInformation(
     RGB=LedRGB(Red=0, Green=0, Blue=0, State=False),
     Led=False,
     Buzzer=False,
-    Button=False
+    Button=False,
+    TemperatureThreshold=0
 )
 
 # Dictionary to define the type of sensor information
@@ -53,7 +54,8 @@ typeCapteurInformation: dict = {
     },
     "Led": bool,
     "Buzzer": bool,
-    "Button": bool
+    "Button": bool,
+    "TemperatureThreshold": int
 }
 
 commandeBuffer: list[str] = []

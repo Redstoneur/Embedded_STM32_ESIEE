@@ -10,6 +10,7 @@ class CapteurInformation(BaseModel):
     Led: bool  # état de la LED
     Buzzer: bool  # état du buzzer
     Button: bool  # état du button
+    TemperatureThreshold: int  # seuil de température
 
     @staticmethod
     def type() -> dict:
@@ -19,7 +20,8 @@ class CapteurInformation(BaseModel):
             "RGB": LedRGB.type(),
             "Led": bool,
             "Buzzer": bool,
-            "Button": bool
+            "Button": bool,
+            "TemperatureThreshold": int
         }
 
     @staticmethod
@@ -30,5 +32,6 @@ class CapteurInformation(BaseModel):
             RGB=LedRGB.from_dict(data["RGB"]),
             Led=data["Led"],
             Buzzer=data["Buzzer"],
-            Button=data["Button"]
+            Button=data["Button"],
+            TemperatureThreshold=data["TemperatureThreshold"]
         )
