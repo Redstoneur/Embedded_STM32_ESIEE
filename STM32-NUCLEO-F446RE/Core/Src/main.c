@@ -125,12 +125,18 @@ int main(void) {
                 RH = (float) RHI + (float) (RHD / 10.0);
                 RH2 = RH;
 
-                tFahrenheit = tCelsius * 9 / 5 + 32;
-                TFI = tFahrenheit;
-                TFD = tFahrenheit * 10 - TFI * 10;
                 printf("%d.%d C   ", TCI, TCD);
-                printf("%d.%d F   ", TFI, TFD);
+
+//                // Convert Celsius to Fahrenheit
+//                tFahrenheit = tCelsius * 9 / 5 + 32;
+//                TFI = (uint8_t) tFahrenheit;
+//                TFD = (uint8_t)((tFahrenheit - TFI) * 10);
+//                printf("%d.%d F   ", TFI, TFD);
+            } else {
+                printf("[DEBUG] Checksum error\n");
             }
+        } else {
+            printf("[DEBUG] DHT11 not responding\n");
         }
 
         uint8_t buffer[200];
@@ -145,20 +151,26 @@ int main(void) {
             if (sizeof(buffer) > 0) {
                 if (strncmp(buffer, "[LED#SWITCH:True]", 6) == 0) {
                     led2 = true;
-                    UART_SendString("LED activée\n");
-                } else if (strncmp(buffer, "[LED#SWITCH:False]", 7) == 0) {
+                    UART_SendString("[DEBUG] LED activée\n");
+                } else if (strncmp(buffer, "[LED#SWITCH:False]", 6) == 0) {
                     led2 = false;
-                    UART_SendString("LED désactivée\n");
-                } else if (strncmp(buffer, "BUZZER ON", 9) == 0) {
+                    UART_SendString("[DEBUG] LED désactivée\n");
+                } else if (strncmp(buffer, "[BUZZER#SWITCH:True]", 6) == 0) {
                     buz2 = true;
-                    UART_SendString("Buzzer activé\n");
-                } else if (strncmp(buffer, "BUZZER OFF", 10) == 0) {
+                    UART_SendString("[DEBUG] Buzzer activé\n");
+                } else if (strncmp(buffer, "[BUZZER#SWITCH:False]", 6) == 0) {
                     buz2 = false;
-                    UART_SendString("Buzzer désactivé\n");
-                } else if (strncmp(buffer, "RGB ", 4) == 0) {
-                    sscanf(buffer, "RGB R%d G%d B%d", &rgbr2, &rgbg2, &rgbb2);
-                    UART_SendString("Couleur RGB mise à jour\n");
-                } else { UART_SendString("Commande inconnue\n"); }
+                    UART_SendString("[DEBUG] Buzzer désactivé\n");
+                } else if (strncmp(buffer, "[RGB#SWITCH:True]", 6) == 0) {
+                    rgb2 = true;
+                    UART_SendString("[DEBUG] RGB activé\n");
+                } else if (strncmp(buffer, "[RGB#SWITCH:False]", 6) == 0) {
+                    rgb2 = false;
+                    UART_SendString("[DEBUG] RGB désactivé\n");
+                } else if (strncmp(buffer, "[RGB#COLOR:", 6) == 0) {
+                    sscanf(buffer, "[RGB#COLOR:%d,%d,%d]", &rgbr2, &rgbg2, &rgbb2);
+                    UART_SendString("[DEBUG] Couleur RGB mise à jour\n");
+                } else { UART_SendString("[DEBUG] Commande inconnue\n"); }
                 memset(buffer, 0, sizeof(buffer));
             }
         }
