@@ -154,7 +154,7 @@ onMounted(fetchData);
 
       <!-- radiateur -->
       <div class="buzzer-container">
-        <img src="./assets/radiateur.jpg" />
+        <img src="./assets/Radiateur.webp" />
         <button
           :class="{ buzzeColor: capteurs.Buzzer, dark: !capteurs.Buzzer }"
         ></button>
