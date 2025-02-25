@@ -8,6 +8,7 @@ const apiUrl = "http://192.168.170.90:8000/capteur";
 const redValue = ref<number>(0);
 const greenValue = ref<number>(0);
 const blueValue = ref<number>(0);
+const rangeValue = ref<number>(0);
 
 interface typeCapteur {
   Humidity: number;
@@ -190,7 +191,15 @@ onMounted(fetchData);
         </div>
       </div>
       <div>
-        <input type="range" name="range" id="range" min="1" max="255" />
+        <div for="range">{{ rangeValue }}</div>
+        <input
+          type="range"
+          name="range"
+          id="range"
+          min="1"
+          max="255"
+          v-model="rangeValue"
+        />
       </div>
       <img class="image-rbd" :src="capteurs?.RGB?.State ? on : off" />
       <button @click="toggleSwitch">
