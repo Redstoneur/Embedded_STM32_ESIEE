@@ -189,6 +189,9 @@ onMounted(fetchData);
           <button @click="sendCapteurValue">↻</button>
         </div>
       </div>
+      <div>
+        <input type="range" name="range" id="range" min="1" max="255" />
+      </div>
       <img class="image-rbd" :src="capteurs?.RGB?.State ? on : off" />
       <button @click="toggleSwitch">
         {{ capteurs.RGB.State ? "Éteindre" : "Allumer" }}
@@ -218,7 +221,6 @@ button {
   font-size: 16px;
   cursor: pointer;
 }
-
 
 img {
   width: 50px;
