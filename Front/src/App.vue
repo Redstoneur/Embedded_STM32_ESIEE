@@ -14,6 +14,7 @@ interface typeCapteur {
   Humidity: number;
   Temperature: number;
   Buzzer: boolean;
+  Led: boolean;
   RGB: {
     Blue: number;
     Green: number;
@@ -63,8 +64,29 @@ const toggleBuzzer = async (): Promise<void> => {
     console.error("Erreur:", err);
   }
 };
+// 'http://192.168.170.90:8000/capteur/led?state=true' \
 
+const toggleRadiateur = async (): Promise<void> => {
+  if (!capteurs.value) return;
 
+  const newState = !capteurs.value.Led; // Inverser l'état actuel
+
+  try {
+    const response = await fetch(`${apiUrl}/led?state=${newState}`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorMessage = await response.text(); // Récupérer le message d'erreur de l'API
+      throw new Error(`Erreur API: ${errorMessage}`);
+    }
+  } catch (err) {
+    console.error("Erreur:", err);
+  }
+};
 const toggleSwitch = async (): Promise<void> => {
   if (!capteurs.value) return;
 
@@ -127,6 +149,18 @@ onMounted(fetchData);
         <img :src="capteurs.Buzzer ? on : off" />
         <button class="buttton-buzzer" @click="toggleBuzzer">
           {{ capteurs.Buzzer ? "Éteindre" : "Allumer" }}
+        </button>
+      </div>
+
+      <!-- radiateur -->
+      <div class="buzzer-container">
+        <img src="./assets/radiateur.jpg" />
+        <button
+          :class="{ buzzeColor: capteurs.Buzzer, dark: !capteurs.Buzzer }"
+        ></button>
+        <img :src="capteurs.Led ? on : off" />
+        <button class="buttton-buzzer" @click="toggleRadiateur">
+          {{ capteurs.Led ? "Éteindre" : "Allumer" }}
         </button>
       </div>
 
