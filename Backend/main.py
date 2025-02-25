@@ -321,6 +321,12 @@ async def get_button() -> bool:
     """
     return capteurInformation.Button
 
+@app.get("/capteur/temperature/threshold")
+async def get_temperature_threshold() -> int:
+    """
+    Renvoie le seuil de température du capteur.
+    """
+    return capteurInformation.TemperatureThreshold
 
 @app.put("/capteur/buzzer")
 async def post_buzzer(state: bool) -> dict:
