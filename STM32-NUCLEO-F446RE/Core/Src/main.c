@@ -253,6 +253,9 @@ int main(void)
               } else if (strncmp(buffer, "[RGB#COLOR:", 6) == 0) {
                   sscanf(buffer, "[RGB#COLOR:%d,%d,%d]", &rgbr, &rgbg, &rgbb);
                   UART_SendString("[DEBUG] Couleur RGB mise à jour\n");
+              } else if (strncmp(buffer, "[TEMP#THRESHOLD:", 6) == 0) {
+                  sscanf(buffer, "[TEMP#THRESHOLD:%d]", &temp_threshold);
+                  UART_SendString("[DEBUG] Seuil de température mis à jour\n");
               } else { UART_SendString("[DEBUG] Commande inconnue\n"); }
               memset(buffer, 0, sizeof(buffer));
           }

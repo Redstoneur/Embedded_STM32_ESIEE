@@ -361,6 +361,15 @@ async def post_rgb_switch(state: bool) -> dict:
     commandeBuffer.append(f"[RGB#SWITCH:{state}]\n")
     return {"state": state}
 
+@app.put("/capteur/temperature/threshold")
+async def post_temperature_threshold(threshold: int) -> dict:
+    """
+    Change le seuil de température du capteur.
+    """
+    global commandeBuffer
+    commandeBuffer.append(f"[TEMPERATURE#THRESHOLD:{threshold}]\n")
+    return {"threshold": threshold}
+
 
 # ---------------- Exécution de l'API ----------------
 
