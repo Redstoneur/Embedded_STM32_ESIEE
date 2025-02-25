@@ -142,9 +142,6 @@ onMounted(fetchData);
       <!-- Buzzer -->
       <div class="buzzer-container">
         <img src="./assets/Buzzer.webp" />
-        <button
-          :class="{ buzzeColor: capteurs.Buzzer, dark: !capteurs.Buzzer }"
-        ></button>
         <img :src="capteurs.Buzzer ? on : off" />
         <button class="buttton-buzzer" @click="toggleBuzzer">
           {{ capteurs.Buzzer ? "Éteindre" : "Allumer" }}
@@ -154,9 +151,6 @@ onMounted(fetchData);
       <!-- radiateur -->
       <div class="buzzer-container">
         <img src="./assets/Radiateur.webp" />
-        <button
-          :class="{ buzzeColor: capteurs.Led, dark: !capteurs.Buzzer }"
-        ></button>
         <img :src="capteurs.Led ? on : off" />
         <button class="buttton-buzzer" @click="toggleRadiateur">
           {{ capteurs.Led ? "Éteindre" : "Allumer" }}
@@ -225,15 +219,6 @@ button {
   cursor: pointer;
 }
 
-.buzzeColor {
-  background: darkorange;
-  color: white;
-}
-
-.dark {
-  background: black;
-  color: white;
-}
 
 img {
   width: 50px;
