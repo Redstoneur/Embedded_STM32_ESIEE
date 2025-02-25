@@ -21,8 +21,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart){
 }
 
 DMA_HandleTypeDef htim1;
-#define TEMP_SENSOR_GPIO_Port GPIOA
-#define TEMP_SENSOR_Pin GPIO_PIN_5
+#define DHT11_PORT TEMP_SENSOR_GPIO_Port
+#define DHT11_PIN TEMP_SENSOR_Pin
 uint8_t RHI, RHD, TCI, TCD, SUM;
 uint32_t pMillis, cMillis;
 float tCelsius = 0;
@@ -40,27 +40,27 @@ void microDelay (uint16_t delay)
 uint8_t DHT11_Start (void){
   uint8_t Response = 0;
   GPIO_InitTypeDef GPIO_InitStructPrivate = {0};
-  GPIO_InitStructPrivate.Pin = TEMP_SENSOR_Pin;
+  GPIO_InitStructPrivate.Pin = DHT11_PIN;
   GPIO_InitStructPrivate.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStructPrivate.Speed = GPIO_SPEED_FREQ_LOW;
   GPIO_InitStructPrivate.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(TEMP_SENSOR_GPIO_Port, &GPIO_InitStructPrivate); // set the pin as output
-  HAL_GPIO_WritePin (TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin, 0);   // pull the pin low
+  HAL_GPIO_Init(DHT11_PORT, &GPIO_InitStructPrivate); // set the pin as output
+  HAL_GPIO_WritePin (DHT11_PORT, DHT11_PIN, 0);   // pull the pin low
   HAL_Delay(20);   // wait for 20ms
-  HAL_GPIO_WritePin (TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin, 1);   // pull the pin high
+  HAL_GPIO_WritePin (DHT11_PORT, DHT11_PIN, 1);   // pull the pin high
   microDelay (30);   // wait for 30us
   GPIO_InitStructPrivate.Mode = GPIO_MODE_INPUT;
   GPIO_InitStructPrivate.Pull = GPIO_PULLUP;
-  HAL_GPIO_Init(TEMP_SENSOR_GPIO_Port, &GPIO_InitStructPrivate); // set the pin as input
+  HAL_GPIO_Init(DHT11_PORT, &GPIO_InitStructPrivate); // set the pin as input
   microDelay (40);
-  if (!(HAL_GPIO_ReadPin (TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin)))
+  if (!(HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)))
   {
     microDelay (80);
-    if ((HAL_GPIO_ReadPin (TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin))) Response = 1;
+    if ((HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN))) Response = 1;
   }
   pMillis = HAL_GetTick();
   cMillis = HAL_GetTick();
-  while ((HAL_GPIO_ReadPin (TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin)) && pMillis + 2 > cMillis)
+  while ((HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)) && pMillis + 2 > cMillis)
   {
     cMillis = HAL_GetTick();
   }
@@ -73,18 +73,18 @@ uint8_t DHT11_Read (void)
   {
     pMillis = HAL_GetTick();
     cMillis = HAL_GetTick();
-    while (!(HAL_GPIO_ReadPin (TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin)) && pMillis + 2 > cMillis)
+    while (!(HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)) && pMillis + 2 > cMillis)
     {  // wait for the pin to go high
       cMillis = HAL_GetTick();
     }
     microDelay (40);   // wait for 40 us
-    if (!(HAL_GPIO_ReadPin (TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin)))   // if the pin is low
+    if (!(HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)))   // if the pin is low
       b&= ~(1<<(7-a));
     else
       b|= (1<<(7-a));
     pMillis = HAL_GetTick();
     cMillis = HAL_GetTick();
-    while ((HAL_GPIO_ReadPin (TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin)) && pMillis + 2 > cMillis)
+    while ((HAL_GPIO_ReadPin (DHT11_PORT, DHT11_PIN)) && pMillis + 2 > cMillis)
     {  // wait for the pin to go low
       cMillis = HAL_GetTick();
     }
@@ -136,27 +136,23 @@ int main(void)
 
     uint8_t buffer[200];
     HAL_UART_Receive(&huart4, buffer, sizeof(buffer), HAL_MAX_DELAY);
-    sprintf(
-      uart_buf,
-      "recue:%s %d\n",
-      buffer,strlen(buffer)
-    );
-    UART_SendString(uart_buf);
-
-	if (strlen(buffer) > 0) {
-		if (strncmp(buffer, "[LED#SWITCH:true]", 6) == 0) {led2 = true;UART_SendString("LED activée\n");}
-		else if (strncmp(buffer, "[LED#SWITCH:false]", 7) == 0) {led2 = false;UART_SendString("LED désactivée\n");}
+    if(sizeof(buffer)!=200){
+      sprintf(
+        uart_buf,
+        "recue:%s %d\n",
+        buffer,sizeof(buffer)
+      );
+      UART_SendString(uart_buf);
+	  if (sizeof(buffer) > 0) {
+		if (strncmp(buffer, "[LED#SWITCH:True]", 6) == 0) {led2 = true;UART_SendString("LED activée\n");}
+		else if (strncmp(buffer, "[LED#SWITCH:False]", 7) == 0) {led2 = false;UART_SendString("LED désactivée\n");}
 		else if (strncmp(buffer, "BUZZER ON", 9) == 0) {buz2 = true;UART_SendString("Buzzer activé\n");}
 		else if (strncmp(buffer, "BUZZER OFF", 10) == 0) {buz2 = false;UART_SendString("Buzzer désactivé\n");}
-		else if (strncmp(buffer, "RGB ", 4) == 0) {
-		  sscanf(buffer, "RGB R%d G%d B%d", &rgbr2, &rgbg2, &rgbb2);
-		  UART_SendString("Couleur RGB mise à jour\n");
-		}
-		else {
-		  UART_SendString("Commande inconnue\n");
-		}
+		else if (strncmp(buffer, "RGB ", 4) == 0) {sscanf(buffer, "RGB R%d G%d B%d", &rgbr2, &rgbg2, &rgbb2);UART_SendString("Couleur RGB mise à jour\n");}
+		else {UART_SendString("Commande inconnue\n");}
 		memset(buffer, 0, sizeof(buffer));
-	}
+	  }
+    }
 
     float RH=RH2, Temp=Temp2;
     int rgbr=rgbr2,rgbg=rgbg2,rgbb=rgbb2;
@@ -217,24 +213,25 @@ static void MX_GPIO_Init(void){
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, GPIO_PIN_3, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PC1 */
-  GPIO_InitStruct.Pin = GPIO_PIN_1;
+  /*Configure GPIO pin : RGBBLUE_Pin */
+  GPIO_InitStruct.Pin = RGBBLUE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(RGBBLUE_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA4 */
-  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  /*Configure GPIO pin : RGBTED_Pin */
+  GPIO_InitStruct.Pin = RGBTED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  HAL_GPIO_Init(RGBTED_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PB0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
+  /*Configure GPIO pin : RGBGREEN_Pin */
+  GPIO_InitStruct.Pin = RGBGREEN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(RGBGREEN_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PB3 */
   //GPIO_InitStruct.Pin = GPIO_PIN_3;
@@ -243,11 +240,11 @@ static void MX_GPIO_Init(void){
   //HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PB5 */
-  GPIO_InitStruct.Pin = TEMP_SENSOR_Pin;
+  GPIO_InitStruct.Pin = DHT11_PIN;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(TEMP_SENSOR_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(DHT11_PORT, &GPIO_InitStruct);
 
 }
 
