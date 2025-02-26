@@ -193,13 +193,14 @@ onUnmounted(() => {
 
       <!-- Température -->
       <div>
-        Température: <button>{{ capteurs.Temperature }}°C</button>
+        <img src="./assets/Thermos_30.webp" />
+        <button class="temp-humi">{{ capteurs.Temperature }}°C</button>
       </div>
 
       <!-- Humidité -->
       <div>
         <img src="./assets/Humidity_icon.webp" />
-        <button>{{ capteurs.Humidity }}%</button>
+        <button class="temp-humi">{{ capteurs.Humidity }}%</button>
       </div>
 
       <!-- RGB -->
@@ -262,6 +263,9 @@ h1 {
   text-align: center;
   font-size: 24px;
   color: #333;
+}
+.temp-humi {
+  position: absolute;
 }
 
 button {
