@@ -61,10 +61,10 @@ uint8_t TFD = 0;
 char strCopy[15];
 
 int rgbr = 255;
-int rgbg = 30;
-int rgbb = 150;
+int rgbg = 255;
+int rgbb = 255;
 
-bool rgb = false;
+bool rgb = true;
 bool led = false;
 bool buz = false;
 bool but = false;
@@ -72,7 +72,8 @@ bool but = false;
 int temp_threshold = 25;
 int buz_intensity = 50; // Intensité du buzzer (0-100)
 
-char rx_buffer[1], uart_buf[200];
+char uart_buf[200], uart_buf2[200];
+uint8_t rx_buffer[1];
 
 /* USER CODE END PV */
 
@@ -87,6 +88,7 @@ void UART_SendString(char *str);
 void Update_RGB_LED(int red, int green, int blue, bool state);
 void Update_Buzzer(bool state, int intensity);
 void Update_Radiator(bool state);
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -191,10 +193,10 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim1);
-  HAL_UART_Transmit(&huart2, "Start\n", 28, 1000u);
+  //HAL_UART_Transmit(&huart2, "Start\n", 28, 1000u);
 
   UART_SendString("[DEBUG] STM32 USART6 Initialized!\n");
-  HAL_UART_Receive_IT(&huart4, (uint8_t *) rx_buffer, sizeof(rx_buffer));
+  //HAL_UART_Receive_IT(&huart4, (uint8_t *) rx_buffer, sizeof(rx_buffer));
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -218,48 +220,9 @@ int main(void)
               printf("%d.%d C   %d.%d F", TCI, TCD, TFI, TFD);
               char *buf = (char *) malloc(sizeof(char) * 100);
               sprintf(buf, "%d.%d C %d.%d %%\n", TCI, TCD, RHI, RHD);
-              HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
+              //HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
           }
       }
-
-      /*uint8_t buffer[200];
-      HAL_UART_Receive(&huart4, buffer, strlen(buffer), HAL_MAX_DELAY);
-      if (strlen(buffer) != 200) {
-          sprintf(
-                  uart_buf,
-                  "[DEBUG] Received %d bytes: %s\n",
-                  buffer, strlen(buffer)
-          );
-          UART_SendString(uart_buf);
-          if (strlen(buffer) > 0) {
-              if (strncmp(buffer, "[LED#SWITCH:True]", 6) == 0) {
-                  led = true;
-                  UART_SendString("[DEBUG] LED activée\n");
-              } else if (strncmp(buffer, "[LED#SWITCH:False]", 6) == 0) {
-                  led = false;
-                  UART_SendString("[DEBUG] LED désactivée\n");
-              } else if (strncmp(buffer, "[BUZZER#SWITCH:True]", 6) == 0) {
-                  buz = true;
-                  UART_SendString("[DEBUG] Buzzer activé\n");
-              } else if (strncmp(buffer, "[BUZZER#SWITCH:False]", 6) == 0) {
-                  buz = false;
-                  UART_SendString("[DEBUG] Buzzer désactivé\n");
-              } else if (strncmp(buffer, "[RGB#SWITCH:True]", 6) == 0) {
-                  rgb = true;
-                  UART_SendString("[DEBUG] RGB activé\n");
-              } else if (strncmp(buffer, "[RGB#SWITCH:False]", 6) == 0) {
-                  rgb = false;
-                  UART_SendString("[DEBUG] RGB désactivé\n");
-              } else if (strncmp(buffer, "[RGB#COLOR:", 6) == 0) {
-                  sscanf(buffer, "[RGB#COLOR:%d,%d,%d]", &rgbr, &rgbg, &rgbb);
-                  UART_SendString("[DEBUG] Couleur RGB mise à jour\n");
-              } else if (strncmp(buffer, "[TEMP#THRESHOLD:", 6) == 0) {
-                  sscanf(buffer, "[TEMP#THRESHOLD:%d]", &temp_threshold);
-                  UART_SendString("[DEBUG] Seuil de température mis à jour\n");
-              } else { UART_SendString("[DEBUG] Commande inconnue\n"); }
-              memset(buffer, 0, sizeof(buffer));
-          }
-      }*/
 
       sprintf(
               uart_buf,
@@ -277,9 +240,9 @@ int main(void)
 
       HAL_Delay(2000);
 
-      if (HAL_UART_Receive(&huart4, (uint8_t *) rx_buffer, 1, 100) == HAL_OK) {
-          HAL_UART_Transmit(&huart4, (uint8_t *) rx_buffer, 1, HAL_MAX_DELAY);
-      }
+      //if (HAL_UART_Receive(&huart4, (uint8_t *) rx_buffer, 1, 100) == HAL_OK) {
+      //    HAL_UART_Transmit(&huart4, (uint8_t *) rx_buffer, 1, HAL_MAX_DELAY);
+      //}
 
       Update_RGB_LED(rgbr, rgbg, rgbb, rgb);
       Update_Buzzer(buz, buz_intensity);
@@ -535,6 +498,22 @@ void Update_Radiator(bool state) {
     } else {
         HAL_GPIO_WritePin(GPIOC, RADIATEUR_Pin, GPIO_PIN_RESET);
     }
+}
+
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+        HAL_UART_Receive_IT(&huart4, rx_buffer, 1);
+        //UART_SendString(rx_buffer);
+        if (strcmp(rx_buffer,"\n")) {
+                UART_SendString(rx_buffer);
+        } else {
+                UART_SendString("[DEBUG] ESPACE\n");
+        }
+
+            // Relancez la réception pour le prochain caractère
+
+   // HAL_UART_Receive_IT(&huart2, rx_buffer, 16);
+    //HAL_UART_Transmit(&huart2, rx_buffer, 16, 0xFFFF);
+
 }
 
 /* USER CODE END 4 */
