@@ -86,6 +86,7 @@ static void MX_USART2_UART_Init(void);
 void UART_SendString(char *str);
 void Update_RGB_LED(int red, int green, int blue, bool state);
 void Update_Buzzer(bool state, int intensity);
+void Update_Radiator(bool state);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -282,6 +283,7 @@ int main(void)
 
       Update_RGB_LED(rgbr, rgbg, rgbb, rgb);
       Update_Buzzer(buz, buz_intensity);
+      Update_Radiator(led);
 
     /* USER CODE END WHILE */
 
@@ -526,6 +528,15 @@ void Update_Buzzer(bool state, int intensity) {
         HAL_GPIO_WritePin(GPIOC, BUZZER_Pin, GPIO_PIN_RESET);
     }
 }
+
+void Update_Radiator(bool state) {
+    if (state) {
+        HAL_GPIO_WritePin(GPIOC, RADIATEUR_Pin, GPIO_PIN_SET);
+    } else {
+        HAL_GPIO_WritePin(GPIOC, RADIATEUR_Pin, GPIO_PIN_RESET);
+    }
+}
+
 /* USER CODE END 4 */
 
 /**
