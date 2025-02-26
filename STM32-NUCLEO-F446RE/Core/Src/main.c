@@ -64,10 +64,11 @@ int rgbr = 255;
 int rgbg = 255;
 int rgbb = 255;
 
-bool rgb = false;
-bool led = true;
-bool buz = false;
+bool rgb = false, rgb_state = false;
+bool led = true, led_state = false;
+bool buz = false, buz_state = false;
 bool but = false;
+bool temp_old_state = false;
 
 int temp_threshold = 25;
 int buz_intensity = 50; // Intensité du buzzer (0-100)
@@ -226,6 +227,8 @@ int main(void)
           }
       }
 
+      Automate_Actions();
+
         sprintf(
                 uart_buf,
                 "{\"Temperature\":%d.%d,\"Humidity\":%d.%d,\"RGB\":{\"red\":%d,\"green\":%d,\"blue\":%d,\"state\":%s},\"Led\":%s,\"Buzzer\":%s,\"Button\":%s,\"TemperatureThreshold\":%d}\n",
@@ -241,18 +244,6 @@ int main(void)
         UART_SendString(uart_buf);
 
         HAL_Delay(2000);
-
-        Automate_Actions();
-
-        if (rgb) {
-            Update_RGB_LED(rgbr, rgbg, rgbb, rgb);
-        }
-        if (led) {
-            Update_RGB_LED(rgbr, rgbg, rgbb, led);
-        }
-        if (buz) {
-            Update_Buzzer(buz, buz_intensity);
-        }
 
     /* USER CODE END WHILE */
 
@@ -551,22 +542,51 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 
 void Automate_Actions(void) {
     // Allumer le radiateur (LED) si la température est inférieure à la température cible
+    if (temp_old_state != (tCelsius < temp_threshold)) {
+        temp_old_state = (tCelsius < temp_threshold);
+        buzzer_cycles = 0;
+    }
     if (tCelsius < temp_threshold) {
+        rgb_state = true;
+        led_state = true;
+        if (buzzer_cycles < 4) {
+            buz_state = true;
+            buzzer_cycles++;
+        } else {
+            buz_state = false;
+        }
+    } else {
+        rgb_state = false;
+        led_state = false;
+        if (buzzer_cycles < 4) {
+            buz_state = true;
+            buzzer_cycles++;
+        } else {
+            buz_state = false;
+        }
+
+    }
+
+    if(rgb)
+        rgb_state = true;
+        Update_RGB_LED(rgbr, rgbg, rgbb, true);
+    else {
+        Update_RGB_LED(rgbr, rgbg, rgbb, rgb_state);
+    }
+
+    if(led)
+        led_state = true;
         Update_Radiator(true);
-    } else {
-        Update_Radiator(false);
+    else {
+        Update_Radiator(led_state);
     }
 
-    // Faire du son avec le buzzer pendant 4 cycles de la boucle while du main
-    if (buzzer_cycles < 4) {
+    if(buz)
+        buz_state = true;
         Update_Buzzer(true, buz_intensity);
-        buzzer_cycles++;
-    } else {
-        Update_Buzzer(false, 0);
+    else {
+        Update_Buzzer(buz_state, buz_intensity);
     }
-
-    // Allumer le RGB
-    Update_RGB_LED(rgbr, rgbg, rgbb, true);
 }
 
 /* USER CODE END 4 */
