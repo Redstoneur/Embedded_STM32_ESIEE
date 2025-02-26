@@ -186,7 +186,7 @@ onUnmounted(() => {
       <div class="buzzer-container">
         <img src="./assets/Radiateur.webp" />
         <img :src="capteurs.Led ? on : off" />
-        <button class="buttton-buzzer" @click="toggleRadiateur">
+        <button class="buttton-buzzer btn-click" @click="toggleRadiateur">
           {{ capteurs.Led ? "Éteindre" : "Allumer" }}
         </button>
       </div>
@@ -272,7 +272,7 @@ button {
   cursor: pointer;
 }
 .btn-click {
-  border-color: orangered;
+  border: 2px solid orangered !important;
 }
 
 img {
