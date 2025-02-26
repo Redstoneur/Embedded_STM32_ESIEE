@@ -65,6 +65,8 @@ void Error_Handler(void);
 #define RGBGREEN_GPIO_Port GPIOB
 #define TEMP_Pin GPIO_PIN_10
 #define TEMP_GPIO_Port GPIOC
+#define RADIATEUR_Pin GPIO_PIN_11
+#define RADIATEUR_GPIO_Port GPIOC
 #define BUZZER_Pin GPIO_PIN_12
 #define BUZZER_GPIO_Port GPIOC
 #define TEMP_SENSOR_Pin GPIO_PIN_5

@@ -70,6 +70,7 @@ bool buz = false;
 bool but = false;
 
 int temp_threshold = 25;
+int buz_intensity = 50; // Intensité du buzzer (0-100)
 
 char rx_buffer[1], uart_buf[200];
 
@@ -84,6 +85,7 @@ static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void UART_SendString(char *str);
 void Update_RGB_LED(int red, int green, int blue, bool state);
+void Update_Buzzer(bool state, int intensity);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -212,12 +214,9 @@ int main(void)
               // Can use tCelsius, tFahrenheit and RH for any purposes
               TFI = tFahrenheit;  // Fahrenheit integral
               TFD = tFahrenheit * 10 - TFI * 10; // Fahrenheit decimal
-              printf("%d.%d C   ", TCI, TCD);
-              printf("%d.%d F   ", TFI, TFD);
+              printf("%d.%d C   %d.%d F", TCI, TCD, TFI, TFD);
               char *buf = (char *) malloc(sizeof(char) * 100);
-              sprintf(buf, "%d.%d C\n", TCI, TCD);
-              HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
-              sprintf(buf, "%d.%d %%\n", RHI, RHD);
+              sprintf(buf, "%d.%d C %d.%d %%\n", TCI, TCD, RHI, RHD);
               HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
           }
       }
@@ -282,6 +281,7 @@ int main(void)
       }
 
       Update_RGB_LED(rgbr, rgbg, rgbb, rgb);
+      Update_Buzzer(buz, buz_intensity);
 
     /* USER CODE END WHILE */
 
@@ -466,7 +466,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, RGBBLUE_Pin|TEMP_Pin|BUZZER_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, RGBBLUE_Pin|TEMP_Pin|RADIATEUR_Pin|BUZZER_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(RGBRED_GPIO_Port, RGBRED_Pin, GPIO_PIN_RESET);
@@ -474,8 +474,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, RGBGREEN_Pin|TEMP_SENSOR_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : RGBBLUE_Pin TEMP_Pin BUZZER_Pin */
-  GPIO_InitStruct.Pin = RGBBLUE_Pin|TEMP_Pin|BUZZER_Pin;
+  /*Configure GPIO pins : RGBBLUE_Pin TEMP_Pin RADIATEUR_Pin BUZZER_Pin */
+  GPIO_InitStruct.Pin = RGBBLUE_Pin|TEMP_Pin|RADIATEUR_Pin|BUZZER_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -502,6 +502,7 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 void UART_SendString(char *str) { HAL_UART_Transmit(&huart4, (uint8_t *) str, strlen(str), HAL_MAX_DELAY); }
+
 void Update_RGB_LED(int red, int green, int blue, bool state) {
     if (state) {
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, red > 0 ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -514,6 +515,17 @@ void Update_RGB_LED(int red, int green, int blue, bool state) {
     }
 }
 
+void Update_Buzzer(bool state, int intensity) {
+    if (state) {
+        // Convertir l'intensité en une valeur de PWM (0-100% -> 0-255)
+        int pwm_value = (intensity * 255) / 100;
+        // Configurer le timer pour générer un signal PWM avec la valeur calculée
+        __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm_value);
+        HAL_GPIO_WritePin(GPIOC, BUZZER_Pin, GPIO_PIN_SET);
+    } else {
+        HAL_GPIO_WritePin(GPIOC, BUZZER_Pin, GPIO_PIN_RESET);
+    }
+}
 /* USER CODE END 4 */
 
 /**
