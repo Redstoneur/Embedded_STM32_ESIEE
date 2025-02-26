@@ -70,7 +70,7 @@ bool buz = false, buz_state = false;
 bool but = false;
 bool temp_old_state = false;
 
-int temp_threshold = 25;
+int temp_threshold = 30;
 int buz_intensity = 50; // Intensité du buzzer (0-100)
 
 int buzzer_cycles = 0;
@@ -547,7 +547,7 @@ void Automate_Actions(void) {
         buzzer_cycles = 0;
     }
     if (tCelsius < temp_threshold) {
-        rgb_state = true;
+        rgb_state = false;
         led_state = false;
         if (buzzer_cycles < 4) {
             buz_state = true;
@@ -557,7 +557,7 @@ void Automate_Actions(void) {
         }
     } else {
         rgb_state = false;
-        led_state = true;
+        led_state = false;
         if (buzzer_cycles < 4) {
             buz_state = true;
             buzzer_cycles++;
