@@ -64,13 +64,16 @@ int rgbr = 255;
 int rgbg = 255;
 int rgbb = 255;
 
-bool rgb = true;
-bool led = false;
-bool buz = false;
+bool rgb = false, rgb_state = false;
+bool led = false, led_state = false;
+bool buz = false, buz_state = false;
 bool but = false;
+bool temp_old_state = false;
 
-int temp_threshold = 25;
+int temp_threshold = 30;
 int buz_intensity = 50; // Intensité du buzzer (0-100)
+
+int buzzer_cycles = 0;
 
 char uart_buf[200], uart_buf2[200];
 uint8_t rx_buffer[1];
@@ -88,6 +91,7 @@ void UART_SendString(char *str);
 void Update_RGB_LED(int red, int green, int blue, bool state);
 void Update_Buzzer(bool state, int intensity);
 void Update_Radiator(bool state);
+void Automate_Actions(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -223,29 +227,23 @@ int main(void)
           }
       }
 
-      sprintf(
-              uart_buf,
-              "{\"Temperature\":%d.%d,\"Humidity\":%d.%d,\"RGB\":{\"red\":%d,\"green\":%d,\"blue\":%d,\"state\":%s},\"Led\":%s,\"Buzzer\":%s,\"Button\":%s,\"TemperatureThreshold\":%d}\n",
-              TCI, TCD, // Temperature
-              RHI, RHD, // Humidity
-              rgbr, rgbg, rgbb, // RGB color
-              rgb ? "true" : "false", // RGB state
-              led ? "true" : "false", // Led state
-              buz ? "true" : "false", // Buzzer state
-              but ? "true" : "false", // Button state
-              temp_threshold // Temperature threshold
-      );
-      UART_SendString(uart_buf);
+      Automate_Actions();
 
-      HAL_Delay(2000);
+        sprintf(
+                uart_buf,
+                "{\"Temperature\":%d.%d,\"Humidity\":%d.%d,\"RGB\":{\"red\":%d,\"green\":%d,\"blue\":%d,\"state\":%s},\"Led\":%s,\"Buzzer\":%s,\"Button\":%s,\"TemperatureThreshold\":%d}\n",
+                TCI, TCD, // Temperature
+                RHI, RHD, // Humidity
+                rgbr, rgbg, rgbb, // RGB color
+                rgb_state ? "true" : "false", // RGB state
+                led_state ? "true" : "false", // Led state
+                buz_state ? "true" : "false", // Buzzer state
+                but ? "true" : "false", // Button state
+                temp_threshold // Temperature threshold
+        );
+        UART_SendString(uart_buf);
 
-      //if (HAL_UART_Receive(&huart4, (uint8_t *) rx_buffer, 1, 100) == HAL_OK) {
-      //    HAL_UART_Transmit(&huart4, (uint8_t *) rx_buffer, 1, HAL_MAX_DELAY);
-      //}
-
-      Update_RGB_LED(rgbr, rgbg, rgbb, rgb);
-      Update_Buzzer(buz, buz_intensity);
-      Update_Radiator(led);
+        HAL_Delay(2000);
 
     /* USER CODE END WHILE */
 
@@ -500,19 +498,95 @@ void Update_Radiator(bool state) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-        HAL_UART_Receive_IT(&huart4, rx_buffer, 1);
-        //UART_SendString(rx_buffer);
-        if (strcmp(rx_buffer,"\n")) {
-                UART_SendString(rx_buffer);
+    static uint16_t uart_buf2_index = 0;
+
+    if (strcmp(rx_buffer, "\n")) {
+        uart_buf2[uart_buf2_index++] = rx_buffer[0];
+    } else {
+        uart_buf2[uart_buf2_index] = '\0'; // Null-terminate the string
+        // UART_SendString(uart_buf2);
+        if (strncmp((char *) rx_buffer, "[LED#SWITCH:True]", 16) == 0) {
+            led = true;
+            UART_SendString("[DEBUG] LED activée\n");
+        } else if (strncmp((char *) rx_buffer, "[LED#SWITCH:False]", 17) == 0) {
+            led = false;
+            UART_SendString("[DEBUG] LED désactivée\n");
+        } else if (strncmp((char *) rx_buffer, "[BUZZER#SWITCH:True]", 19) == 0) {
+            buz = true;
+            UART_SendString("[DEBUG] Buzzer activé\n");
+        } else if (strncmp((char *) rx_buffer, "[BUZZER#SWITCH:False]", 20) == 0) {
+            buz = false;
+            UART_SendString("[DEBUG] Buzzer désactivé\n");
+        } else if (strncmp((char *) rx_buffer, "[RGB#SWITCH:True]", 16) == 0) {
+            rgb = true;
+            UART_SendString("[DEBUG] RGB activé\n");
+        } else if (strncmp((char *) rx_buffer, "[RGB#SWITCH:False]", 17) == 0) {
+            rgb = false;
+            UART_SendString("[DEBUG] RGB désactivé\n");
+        } else if (strncmp((char *) rx_buffer, "[RGB#COLOR:", 11) == 0) {
+            sscanf((char *) rx_buffer, "[RGB#COLOR:%d,%d,%d]", &rgbr, &rgbg, &rgbb);
+            UART_SendString("[DEBUG] Couleur RGB mise à jour\n");
+        } else if (strncmp((char *) rx_buffer, "[TEMP#THRESHOLD:", 16) == 0) {
+            sscanf((char *) rx_buffer, "[TEMP#THRESHOLD:%d]", &temp_threshold);
+            UART_SendString("[DEBUG] Seuil de température mis à jour\n");
         } else {
-                UART_SendString("[DEBUG] ESPACE\n");
+            UART_SendString("[DEBUG] Commande inconnue\n");
+        }
+        uart_buf2_index = 0; // Reset the index for the next message
+    }
+
+    // Relancez la réception pour le prochain caractère
+    HAL_UART_Receive_IT(&huart4, rx_buffer, 1);
+
+}
+
+void Automate_Actions(void) {
+    // Allumer le radiateur (LED) si la température est inférieure à la température cible
+    if (temp_old_state != (tCelsius < temp_threshold)) {
+        temp_old_state = (tCelsius < temp_threshold);
+        buzzer_cycles = 0;
+    }
+    if (tCelsius < temp_threshold) {
+        rgb_state = true;
+        led_state = true;
+        if (buzzer_cycles < 4) {
+            buz_state = true;
+            buzzer_cycles++;
+        } else {
+            buz_state = false;
+        }
+    } else {
+        rgb_state = false;
+        led_state = false;
+        if (buzzer_cycles < 4) {
+            buz_state = true;
+            buzzer_cycles++;
+        } else {
+            buz_state = false;
         }
 
-            // Relancez la réception pour le prochain caractère
+    }
 
-   // HAL_UART_Receive_IT(&huart2, rx_buffer, 16);
-    //HAL_UART_Transmit(&huart2, rx_buffer, 16, 0xFFFF);
+    if (rgb) {
+        rgb_state = true;
+        Update_RGB_LED(rgbr, rgbg, rgbb, true);
+    } else {
+        Update_RGB_LED(rgbr, rgbg, rgbb, rgb_state);
+    }
 
+    if (led) {
+        led_state = true;
+        Update_Radiator(true);
+    } else {
+        Update_Radiator(led_state);
+    }
+
+    if (buz) {
+        buz_state = true;
+        Update_Buzzer(true, buz_intensity);
+    } else {
+        Update_Buzzer(buz_state, buz_intensity);
+    }
 }
 
 /* USER CODE END 4 */
