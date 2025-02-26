@@ -502,11 +502,38 @@ void Update_Radiator(bool state) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     static uint16_t uart_buf2_index = 0;
 
-    if (strcmp(rx_buffer,"\n")){
+    if (strcmp(rx_buffer, "\n")) {
         uart_buf2[uart_buf2_index++] = rx_buffer[0];
     } else {
         uart_buf2[uart_buf2_index] = '\0'; // Null-terminate the string
-        UART_SendString(uart_buf2);
+        // UART_SendString(uart_buf2);
+        if (strncmp((char *) rx_buffer, "[LED#SWITCH:True]", 16) == 0) {
+            led = true;
+            UART_SendString("[DEBUG] LED activée\n");
+        } else if (strncmp((char *) rx_buffer, "[LED#SWITCH:False]", 17) == 0) {
+            led = false;
+            UART_SendString("[DEBUG] LED désactivée\n");
+        } else if (strncmp((char *) rx_buffer, "[BUZZER#SWITCH:True]", 19) == 0) {
+            buz = true;
+            UART_SendString("[DEBUG] Buzzer activé\n");
+        } else if (strncmp((char *) rx_buffer, "[BUZZER#SWITCH:False]", 20) == 0) {
+            buz = false;
+            UART_SendString("[DEBUG] Buzzer désactivé\n");
+        } else if (strncmp((char *) rx_buffer, "[RGB#SWITCH:True]", 16) == 0) {
+            rgb = true;
+            UART_SendString("[DEBUG] RGB activé\n");
+        } else if (strncmp((char *) rx_buffer, "[RGB#SWITCH:False]", 17) == 0) {
+            rgb = false;
+            UART_SendString("[DEBUG] RGB désactivé\n");
+        } else if (strncmp((char *) rx_buffer, "[RGB#COLOR:", 11) == 0) {
+            sscanf((char *) rx_buffer, "[RGB#COLOR:%d,%d,%d]", &rgbr, &rgbg, &rgbb);
+            UART_SendString("[DEBUG] Couleur RGB mise à jour\n");
+        } else if (strncmp((char *) rx_buffer, "[TEMP#THRESHOLD:", 16) == 0) {
+            sscanf((char *) rx_buffer, "[TEMP#THRESHOLD:%d]", &temp_threshold);
+            UART_SendString("[DEBUG] Seuil de température mis à jour\n");
+        } else {
+            UART_SendString("[DEBUG] Commande inconnue\n");
+        }
         uart_buf2_index = 0; // Reset the index for the next message
     }
 
