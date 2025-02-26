@@ -502,7 +502,7 @@ void Update_Radiator(bool state) {
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     static uint16_t uart_buf2_index = 0;
 
-    if (strcmp(rx_buffer,"\n"))
+    if (strcmp(rx_buffer,"\n")){
         uart_buf2[uart_buf2_index++] = rx_buffer[0];
     } else {
         uart_buf2[uart_buf2_index] = '\0'; // Null-terminate the string
