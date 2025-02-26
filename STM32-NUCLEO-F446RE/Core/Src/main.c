@@ -235,9 +235,9 @@ int main(void)
                 TCI, TCD, // Temperature
                 RHI, RHD, // Humidity
                 rgbr, rgbg, rgbb, // RGB color
-                rgb ? "true" : "false", // RGB state
-                led ? "true" : "false", // Led state
-                buz ? "true" : "false", // Buzzer state
+                rgb_state ? "true" : "false", // RGB state
+                led_state ? "true" : "false", // Led state
+                buz_state ? "true" : "false", // Buzzer state
                 but ? "true" : "false", // Button state
                 temp_threshold // Temperature threshold
         );
@@ -548,7 +548,7 @@ void Automate_Actions(void) {
     }
     if (tCelsius < temp_threshold) {
         rgb_state = true;
-        led_state = true;
+        led_state = false;
         if (buzzer_cycles < 4) {
             buz_state = true;
             buzzer_cycles++;
@@ -557,7 +557,7 @@ void Automate_Actions(void) {
         }
     } else {
         rgb_state = false;
-        led_state = false;
+        led_state = true;
         if (buzzer_cycles < 4) {
             buz_state = true;
             buzzer_cycles++;
