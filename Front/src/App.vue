@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import off from "./assets/Switch_OFF.webp";
 import on from "./assets/Switch_ON.webp";
 
@@ -132,7 +132,16 @@ const sendCapteurValue = async (): Promise<void> => {
   }
 };
 
-onMounted(fetchData);
+let intervalId: number;
+
+onMounted(() => {
+  fetchData();
+  intervalId = setInterval(fetchData, 5000);
+});
+
+onUnmounted(() => {
+  clearInterval(intervalId);
+});
 </script>
 
 <template>
