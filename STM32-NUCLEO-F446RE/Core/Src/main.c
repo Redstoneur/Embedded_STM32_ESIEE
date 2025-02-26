@@ -71,7 +71,7 @@ bool but = false;
 
 int temp_threshold = 25;
 
-char rx_buffer[1], uart_buf[120]
+char rx_buffer[1], uart_buf[200];
 
 /* USER CODE END PV */
 
@@ -187,7 +187,7 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start(&htim1);
-  HAL_UART_Transmit(&huart2, "Start\r\n", 28, 1000u);
+  HAL_UART_Transmit(&huart2, "Start\n", 28, 1000u);
 
   UART_SendString("[DEBUG] STM32 USART6 Initialized!\n");
   HAL_UART_Receive_IT(&huart4, (uint8_t *) rx_buffer, sizeof(rx_buffer));
@@ -222,16 +222,16 @@ int main(void)
       }
       HAL_Delay(2000);
 
-      uint8_t buffer[200];
-      HAL_UART_Receive(&huart4, buffer, sizeof(buffer), HAL_MAX_DELAY);
-      if (sizeof(buffer) != 200) {
+      /*uint8_t buffer[200];
+      HAL_UART_Receive(&huart4, buffer, strlen(buffer), HAL_MAX_DELAY);
+      if (strlen(buffer) != 200) {
           sprintf(
                   uart_buf,
                   "[DEBUG] Received %d bytes: %s\n",
-                  buffer, sizeof(buffer)
+                  buffer, strlen(buffer)
           );
           UART_SendString(uart_buf);
-          if (sizeof(buffer) > 0) {
+          if (strlen(buffer) > 0) {
               if (strncmp(buffer, "[LED#SWITCH:True]", 6) == 0) {
                   led = true;
                   UART_SendString("[DEBUG] LED activée\n");
@@ -259,7 +259,7 @@ int main(void)
               } else { UART_SendString("[DEBUG] Commande inconnue\n"); }
               memset(buffer, 0, sizeof(buffer));
           }
-      }
+      }*/
 
       sprintf(
               uart_buf,
