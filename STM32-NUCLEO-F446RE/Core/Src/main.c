@@ -64,8 +64,8 @@ int rgbr = 255;
 int rgbg = 255;
 int rgbb = 255;
 
-bool rgb = true;
-bool led = false;
+bool rgb = false;
+bool led = true;
 bool buz = false;
 bool but = false;
 
