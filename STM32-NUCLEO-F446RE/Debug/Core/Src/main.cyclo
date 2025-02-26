@@ -11,5 +11,5 @@
 ../Core/Src/main.c:471:6:Update_RGB_LED	2
 ../Core/Src/main.c:483:6:Update_Buzzer	2
 ../Core/Src/main.c:495:6:Update_Radiator	2
-../Core/Src/main.c:503:6:HAL_UART_RxCpltCallback	1
-../Core/Src/main.c:526:6:Error_Handler	1
+../Core/Src/main.c:503:6:HAL_UART_RxCpltCallback	2
+../Core/Src/main.c:525:6:Error_Handler	1
