@@ -500,18 +500,18 @@ void Update_Radiator(bool state) {
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
-        HAL_UART_Receive_IT(&huart4, rx_buffer, 1);
-        //UART_SendString(rx_buffer);
-        if (strcmp(rx_buffer,"\n")) {
-                UART_SendString(rx_buffer);
-        } else {
-                UART_SendString("[DEBUG] ESPACE\n");
-        }
+    static uint16_t uart_buf2_index = 0;
 
-            // Relancez la réception pour le prochain caractère
+    if (rx_buffer[0] != '\n') {
+        uart_buf2[uart_buf2_index++] = rx_buffer[0];
+    } else {
+        uart_buf2[uart_buf2_index] = '\0'; // Null-terminate the string
+        UART_SendString(uart_buf2);
+        uart_buf2_index = 0; // Reset the index for the next message
+    }
 
-   // HAL_UART_Receive_IT(&huart2, rx_buffer, 16);
-    //HAL_UART_Transmit(&huart2, rx_buffer, 16, 0xFFFF);
+    // Relancez la réception pour le prochain caractère
+    HAL_UART_Receive_IT(&huart4, rx_buffer, 1);
 
 }
 
