@@ -234,8 +234,8 @@ onUnmounted(() => {
           type="range"
           name="range"
           id="range"
-          min="1"
-          max="255"
+          min="0"
+          max="50"
           v-model="rangeValue"
           @click="toggleTheme"
         />
