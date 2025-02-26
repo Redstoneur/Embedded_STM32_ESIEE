@@ -38,7 +38,8 @@ capteurInformation: CapteurInformation = CapteurInformation(
     RGB=LedRGB(Red=0, Green=0, Blue=0, State=False),
     Led=False,
     Buzzer=False,
-    Button=False
+    Button=False,
+    TemperatureThreshold=0
 )
 
 # Dictionary to define the type of sensor information
@@ -53,7 +54,8 @@ typeCapteurInformation: dict = {
     },
     "Led": bool,
     "Buzzer": bool,
-    "Button": bool
+    "Button": bool,
+    "TemperatureThreshold": int
 }
 
 commandeBuffer: list[str] = []
@@ -319,6 +321,12 @@ async def get_button() -> bool:
     """
     return capteurInformation.Button
 
+@app.get("/capteur/temperature/threshold")
+async def get_temperature_threshold() -> int:
+    """
+    Renvoie le seuil de température du capteur.
+    """
+    return capteurInformation.TemperatureThreshold
 
 @app.put("/capteur/buzzer")
 async def post_buzzer(state: bool) -> dict:
@@ -358,6 +366,15 @@ async def post_rgb_switch(state: bool) -> dict:
     global commandeBuffer
     commandeBuffer.append(f"[RGB#SWITCH:{state}]\n")
     return {"state": state}
+
+@app.put("/capteur/temperature/threshold")
+async def post_temperature_threshold(threshold: int) -> dict:
+    """
+    Change le seuil de température du capteur.
+    """
+    global commandeBuffer
+    commandeBuffer.append(f"[TEMPERATURE#THRESHOLD:{threshold}]\n")
+    return {"threshold": threshold}
 
 
 # ---------------- Exécution de l'API ----------------

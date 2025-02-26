@@ -59,10 +59,16 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define RGBBLUE_Pin GPIO_PIN_1
 #define RGBBLUE_GPIO_Port GPIOC
-#define RGBTED_Pin GPIO_PIN_4
-#define RGBTED_GPIO_Port GPIOA
+#define RGBRED_Pin GPIO_PIN_4
+#define RGBRED_GPIO_Port GPIOA
 #define RGBGREEN_Pin GPIO_PIN_0
 #define RGBGREEN_GPIO_Port GPIOB
+#define TEMP_Pin GPIO_PIN_10
+#define TEMP_GPIO_Port GPIOC
+#define RADIATEUR_Pin GPIO_PIN_11
+#define RADIATEUR_GPIO_Port GPIOC
+#define BUZZER_Pin GPIO_PIN_12
+#define BUZZER_GPIO_Port GPIOC
 #define TEMP_SENSOR_Pin GPIO_PIN_5
 #define TEMP_SENSOR_GPIO_Port GPIOB
 
