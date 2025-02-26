@@ -72,6 +72,8 @@ bool but = false;
 int temp_threshold = 25;
 int buz_intensity = 50; // Intensité du buzzer (0-100)
 
+int buzzer_cycles = 0;
+
 char uart_buf[200], uart_buf2[200];
 uint8_t rx_buffer[1];
 
@@ -88,6 +90,7 @@ void UART_SendString(char *str);
 void Update_RGB_LED(int red, int green, int blue, bool state);
 void Update_Buzzer(bool state, int intensity);
 void Update_Radiator(bool state);
+void Automate_Actions(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -223,29 +226,33 @@ int main(void)
           }
       }
 
-      sprintf(
-              uart_buf,
-              "{\"Temperature\":%d.%d,\"Humidity\":%d.%d,\"RGB\":{\"red\":%d,\"green\":%d,\"blue\":%d,\"state\":%s},\"Led\":%s,\"Buzzer\":%s,\"Button\":%s,\"TemperatureThreshold\":%d}\n",
-              TCI, TCD, // Temperature
-              RHI, RHD, // Humidity
-              rgbr, rgbg, rgbb, // RGB color
-              rgb ? "true" : "false", // RGB state
-              led ? "true" : "false", // Led state
-              buz ? "true" : "false", // Buzzer state
-              but ? "true" : "false", // Button state
-              temp_threshold // Temperature threshold
-      );
-      UART_SendString(uart_buf);
+        sprintf(
+                uart_buf,
+                "{\"Temperature\":%d.%d,\"Humidity\":%d.%d,\"RGB\":{\"red\":%d,\"green\":%d,\"blue\":%d,\"state\":%s},\"Led\":%s,\"Buzzer\":%s,\"Button\":%s,\"TemperatureThreshold\":%d}\n",
+                TCI, TCD, // Temperature
+                RHI, RHD, // Humidity
+                rgbr, rgbg, rgbb, // RGB color
+                rgb ? "true" : "false", // RGB state
+                led ? "true" : "false", // Led state
+                buz ? "true" : "false", // Buzzer state
+                but ? "true" : "false", // Button state
+                temp_threshold // Temperature threshold
+        );
+        UART_SendString(uart_buf);
 
-      HAL_Delay(2000);
+        HAL_Delay(2000);
 
-      //if (HAL_UART_Receive(&huart4, (uint8_t *) rx_buffer, 1, 100) == HAL_OK) {
-      //    HAL_UART_Transmit(&huart4, (uint8_t *) rx_buffer, 1, HAL_MAX_DELAY);
-      //}
+        Automate_Actions();
 
-      Update_RGB_LED(rgbr, rgbg, rgbb, rgb);
-      Update_Buzzer(buz, buz_intensity);
-      Update_Radiator(led);
+        if (rgb) {
+            Update_RGB_LED(rgbr, rgbg, rgbb, rgb);
+        }
+        if (led) {
+            Update_RGB_LED(rgbr, rgbg, rgbb, led);
+        }
+        if (buz) {
+            Update_Buzzer(buz, buz_intensity);
+        }
 
     /* USER CODE END WHILE */
 
@@ -540,6 +547,26 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     // Relancez la réception pour le prochain caractère
     HAL_UART_Receive_IT(&huart4, rx_buffer, 1);
 
+}
+
+void Automate_Actions(void) {
+    // Allumer le radiateur (LED) si la température est inférieure à la température cible
+    if (tCelsius < temp_threshold) {
+        Update_Radiator(true);
+    } else {
+        Update_Radiator(false);
+    }
+
+    // Faire du son avec le buzzer pendant 4 cycles de la boucle while du main
+    if (buzzer_cycles < 4) {
+        Update_Buzzer(true, buz_intensity);
+        buzzer_cycles++;
+    } else {
+        Update_Buzzer(false, 0);
+    }
+
+    // Allumer le RGB
+    Update_RGB_LED(rgbr, rgbg, rgbb, true);
 }
 
 /* USER CODE END 4 */
