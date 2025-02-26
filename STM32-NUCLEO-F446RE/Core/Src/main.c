@@ -65,7 +65,7 @@ int rgbg = 255;
 int rgbb = 255;
 
 bool rgb = false, rgb_state = false;
-bool led = true, led_state = false;
+bool led = false, led_state = false;
 bool buz = false, buz_state = false;
 bool but = false;
 bool temp_old_state = false;
@@ -567,24 +567,24 @@ void Automate_Actions(void) {
 
     }
 
-    if(rgb)
+    if (rgb) {
         rgb_state = true;
         Update_RGB_LED(rgbr, rgbg, rgbb, true);
-    else {
+    } else {
         Update_RGB_LED(rgbr, rgbg, rgbb, rgb_state);
     }
 
-    if(led)
+    if (led) {
         led_state = true;
         Update_Radiator(true);
-    else {
+    } else {
         Update_Radiator(led_state);
     }
 
-    if(buz)
+    if (buz) {
         buz_state = true;
         Update_Buzzer(true, buz_intensity);
-    else {
+    } else {
         Update_Buzzer(buz_state, buz_intensity);
     }
 }
