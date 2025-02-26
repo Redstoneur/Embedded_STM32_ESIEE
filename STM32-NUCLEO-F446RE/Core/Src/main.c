@@ -51,31 +51,60 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-uint8_t RHI, RHD, TCI, TCD, SUM;
+// Relative Humidity Integral
+uint8_t RHI;
+// Relative Humidity Decimal
+uint8_t RHD;
+// Temperature Celsius Integral
+uint8_t TCI;
+// Temperature Celsius Decimal
+uint8_t TCD;
+// Checksum
+uint8_t SUM;
+
+// Previous and current milliseconds for timing
 uint32_t pMillis, cMillis;
+
+// Temperature in Celsius
 float tCelsius = 0;
+// Temperature in Fahrenheit
 float tFahrenheit = 0;
+// Relative Humidity
 float RH = 0;
+
+// Temperature Fahrenheit Integral
 uint8_t TFI = 0;
+// Temperature Fahrenheit Decimal
 uint8_t TFD = 0;
+
+// String buffer for copying
 char strCopy[15];
 
+// RGB LED color values
 int rgbr = 255;
 int rgbg = 255;
 int rgbb = 255;
 
+// States for RGB LED, general LED, buzzer, and button
 bool rgb = false, rgb_state = false;
 bool led = false, led_state = false;
 bool buz = false, buz_state = false;
 bool but = false;
+
+// Previous state of temperature threshold
 bool temp_old_state = false;
 
+// Temperature threshold value
 int temp_threshold = 30;
-int buz_intensity = 50; // Intensité du buzzer (0-100)
+// Buzzer intensity (0-100)
+int buz_intensity = 50;
 
+// Number of buzzer cycles
 int buzzer_cycles = 0;
 
+// UART buffers
 char uart_buf[200], uart_buf2[200];
+// UART receive buffer
 uint8_t rx_buffer[1];
 
 /* USER CODE END PV */
@@ -87,11 +116,13 @@ static void MX_UART4_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
+
 void UART_SendString(char *str);
 void Update_RGB_LED(int red, int green, int blue, bool state);
 void Update_Buzzer(bool state, int intensity);
 void Update_Radiator(bool state);
 void Automate_Actions(void);
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -463,8 +494,19 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+/**
+ * @brief Transmits a string via UART.
+ * @param str The string to be transmitted.
+ */
 void UART_SendString(char *str) { HAL_UART_Transmit(&huart4, (uint8_t *) str, strlen(str), HAL_MAX_DELAY); }
 
+/**
+ * @brief Updates the RGB LED state and color.
+ * @param red The red component (0-255).
+ * @param green The green component (0-255).
+ * @param blue The blue component (0-255).
+ * @param state The state of the RGB LED (true for on, false for off).
+ */
 void Update_RGB_LED(int red, int green, int blue, bool state) {
     if (state) {
         HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, red > 0 ? GPIO_PIN_SET : GPIO_PIN_RESET);
@@ -477,11 +519,16 @@ void Update_RGB_LED(int red, int green, int blue, bool state) {
     }
 }
 
+/**
+ * @brief Updates the buzzer state and intensity.
+ * @param state The state of the buzzer (true for on, false for off).
+ * @param intensity The intensity of the buzzer (0-100).
+ */
 void Update_Buzzer(bool state, int intensity) {
     if (state) {
-        // Convertir l'intensité en une valeur de PWM (0-100% -> 0-255)
+        // Convert intensity to a PWM value (0-100% -> 0-255)
         int pwm_value = (intensity * 255) / 100;
-        // Configurer le timer pour générer un signal PWM avec la valeur calculée
+        // Configure the timer to generate a PWM signal with the calculated value
         __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, pwm_value);
         HAL_GPIO_WritePin(GPIOC, BUZZER_Pin, GPIO_PIN_SET);
     } else {
@@ -489,6 +536,10 @@ void Update_Buzzer(bool state, int intensity) {
     }
 }
 
+/**
+ * @brief Updates the radiator state.
+ * @param state The state of the radiator (true for on, false for off).
+ */
 void Update_Radiator(bool state) {
     if (state) {
         HAL_GPIO_WritePin(GPIOC, RADIATEUR_Pin, GPIO_PIN_SET);
@@ -497,6 +548,10 @@ void Update_Radiator(bool state) {
     }
 }
 
+/**
+ * @brief UART receive complete callback.
+ * @param huart Pointer to the UART handle.
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
     static uint16_t uart_buf2_index = 0;
 
@@ -535,13 +590,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
         uart_buf2_index = 0; // Reset the index for the next message
     }
 
-    // Relancez la réception pour le prochain caractère
+    // Restart reception for the next character
     HAL_UART_Receive_IT(&huart4, rx_buffer, 1);
-
 }
 
+/**
+ * @brief Automates actions based on temperature and other states.
+ */
 void Automate_Actions(void) {
-    // Allumer le radiateur (LED) si la température est inférieure à la température cible
+    // Turn on the radiator (LED) if the temperature is below the target temperature
     if (temp_old_state != (tCelsius < temp_threshold)) {
         temp_old_state = (tCelsius < temp_threshold);
         buzzer_cycles = 0;
@@ -564,7 +621,6 @@ void Automate_Actions(void) {
         } else {
             buz_state = false;
         }
-
     }
 
     if (rgb) {
@@ -588,7 +644,6 @@ void Automate_Actions(void) {
         Update_Buzzer(buz_state, buz_intensity);
     }
 }
-
 /* USER CODE END 4 */
 
 /**
