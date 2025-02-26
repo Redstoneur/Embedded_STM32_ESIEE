@@ -83,6 +83,7 @@ static void MX_TIM1_Init(void);
 static void MX_USART2_UART_Init(void);
 /* USER CODE BEGIN PFP */
 void UART_SendString(char *str);
+void Update_RGB_LED(int red, int green, int blue, bool state);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -220,7 +221,6 @@ int main(void)
               HAL_UART_Transmit(&huart2, buf, strlen(buf), 1000u);
           }
       }
-      HAL_Delay(2000);
 
       /*uint8_t buffer[200];
       HAL_UART_Receive(&huart4, buffer, strlen(buffer), HAL_MAX_DELAY);
@@ -280,6 +280,8 @@ int main(void)
       if (HAL_UART_Receive(&huart4, (uint8_t *) rx_buffer, 1, 100) == HAL_OK) {
           HAL_UART_Transmit(&huart4, (uint8_t *) rx_buffer, 1, HAL_MAX_DELAY);
       }
+
+      Update_RGB_LED(rgbr, rgbg, rgbb, rgb);
 
     /* USER CODE END WHILE */
 
@@ -464,28 +466,37 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(TEMP_GPIO_Port, TEMP_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOC, RGBBLUE_Pin|TEMP_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(TEMP_SENSOR_GPIO_Port, TEMP_SENSOR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(RGBRED_GPIO_Port, RGBRED_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : RGBBLUE_Pin */
-  GPIO_InitStruct.Pin = RGBBLUE_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(RGBBLUE_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, RGBGREEN_Pin|TEMP_SENSOR_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : RGBTED_Pin */
-  GPIO_InitStruct.Pin = RGBTED_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(RGBTED_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(TEMP_GPIO_Port, TEMP_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : RGBGREEN_Pin */
-  GPIO_InitStruct.Pin = RGBGREEN_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  /*Configure GPIO pins : RGBBLUE_Pin TEMP_Pin */
+  GPIO_InitStruct.Pin = RGBBLUE_Pin|TEMP_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(RGBGREEN_GPIO_Port, &GPIO_InitStruct);
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : RGBRED_Pin */
+  GPIO_InitStruct.Pin = RGBRED_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(RGBRED_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : RGBGREEN_Pin TEMP_SENSOR_Pin */
+  GPIO_InitStruct.Pin = RGBGREEN_Pin|TEMP_SENSOR_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pin : TEMP_Pin */
   GPIO_InitStruct.Pin = TEMP_Pin;
@@ -508,6 +519,17 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 
 void UART_SendString(char *str) { HAL_UART_Transmit(&huart4, (uint8_t *) str, strlen(str), HAL_MAX_DELAY); }
+void Update_RGB_LED(int red, int green, int blue, bool state) {
+    if (state) {
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, red > 0 ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, green > 0 ? GPIO_PIN_SET : GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, blue > 0 ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    } else {
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_RESET);
+    }
+}
 
 /* USER CODE END 4 */
 
