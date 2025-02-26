@@ -88,7 +88,6 @@ void UART_SendString(char *str);
 void Update_RGB_LED(int red, int green, int blue, bool state);
 void Update_Buzzer(bool state, int intensity);
 void Update_Radiator(bool state);
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
