@@ -547,8 +547,8 @@ void Automate_Actions(void) {
         buzzer_cycles = 0;
     }
     if (tCelsius < temp_threshold) {
-        rgb_state = false;
-        led_state = false;
+        rgb_state = true;
+        led_state = true;
         if (buzzer_cycles < 4) {
             buz_state = true;
             buzzer_cycles++;
@@ -556,8 +556,8 @@ void Automate_Actions(void) {
             buz_state = false;
         }
     } else {
-        rgb_state = true;
-        led_state = true;
+        rgb_state = false;
+        led_state = false;
         if (buzzer_cycles < 4) {
             buz_state = true;
             buzzer_cycles++;
