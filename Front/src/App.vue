@@ -15,6 +15,7 @@ interface typeCapteur {
   Temperature: number;
   Buzzer: boolean;
   Led: boolean;
+  TemperatureThreshold: number;
   RGB: {
     Blue: number;
     Green: number;
@@ -37,6 +38,7 @@ const fetchData = async (): Promise<void> => {
       redValue.value = capteurs.value.RGB.Red;
       greenValue.value = capteurs.value.RGB.Green;
       blueValue.value = capteurs.value.RGB.Blue;
+      rangeValue.value = capteurs.value.TemperatureThreshold;
     }
   } catch (err) {
     console.error("Erreur:", err);
@@ -64,7 +66,29 @@ const toggleBuzzer = async (): Promise<void> => {
     console.error("Erreur:", err);
   }
 };
-// 'http://192.168.170.90:8000/capteur/led?state=true' \
+
+const toggleTheme = async (): Promise<void> => {
+  if (!capteurs.value) return;
+
+  try {
+    const response = await fetch(
+      `${apiUrl}/temperature/threshold?threshold=${rangeValue}`,
+      {
+        method: "PUT",
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const errorMessage = await response.text(); // Récupérer le message d'erreur de l'API
+      throw new Error(`Erreur API: ${errorMessage}`);
+    }
+  } catch (err) {
+    console.error("Erreur:", err);
+  }
+};
 
 const toggleRadiateur = async (): Promise<void> => {
   if (!capteurs.value) return;
@@ -146,14 +170,14 @@ onUnmounted(() => {
 
 <template>
   <div>
-    <h1>Projet Système Embarqué</h1>
+    <h1>Capt-O-Meter</h1>
 
     <div v-if="capteurs" class="content">
       <!-- Buzzer -->
       <div class="buzzer-container">
         <img src="./assets/Buzzer.webp" />
         <img :src="capteurs.Buzzer ? on : off" />
-        <button class="buttton-buzzer" @click="toggleBuzzer">
+        <button class="buttton-buzzer btn-click" @click="toggleBuzzer">
           {{ capteurs.Buzzer ? "Éteindre" : "Allumer" }}
         </button>
       </div>
@@ -162,7 +186,7 @@ onUnmounted(() => {
       <div class="buzzer-container">
         <img src="./assets/Radiateur.webp" />
         <img :src="capteurs.Led ? on : off" />
-        <button class="buttton-buzzer" @click="toggleRadiateur">
+        <button class="buttton-buzzer btn-click" @click="toggleRadiateur">
           {{ capteurs.Led ? "Éteindre" : "Allumer" }}
         </button>
       </div>
@@ -196,9 +220,13 @@ onUnmounted(() => {
             <img src="./assets/LED_bleue.webp" />
             <input type="number" min="0" max="255" v-model="blueValue" />
           </div>
-          <button @click="sendCapteurValue">↻</button>
+          <button class="btn-click" @click="sendCapteurValue">↻</button>
         </div>
       </div>
+      <img class="image-rbd" :src="capteurs?.RGB?.State ? on : off" />
+      <button class="btn-click" @click="toggleSwitch">
+        {{ capteurs.RGB.State ? "Éteindre" : "Allumer" }}
+      </button>
       <div>
         <div for="range">{{ rangeValue }}</div>
         <input
@@ -208,12 +236,9 @@ onUnmounted(() => {
           min="1"
           max="255"
           v-model="rangeValue"
+          @click="toggleTheme"
         />
       </div>
-      <img class="image-rbd" :src="capteurs?.RGB?.State ? on : off" />
-      <button @click="toggleSwitch">
-        {{ capteurs.RGB.State ? "Éteindre" : "Allumer" }}
-      </button>
     </div>
   </div>
 </template>
@@ -224,6 +249,13 @@ onUnmounted(() => {
   flex-direction: column;
   align-items: center;
   gap: 20px;
+  width: 700px;
+  height: auto;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  background-color: #fff !important;
+  color: black;
 }
 
 h1 {
@@ -238,6 +270,9 @@ button {
   border-radius: 8px;
   font-size: 16px;
   cursor: pointer;
+}
+.btn-click {
+  border: 2px solid orangered !important;
 }
 
 img {
@@ -266,6 +301,9 @@ img {
   align-items: center;
   gap: 5px;
 }
+.rgb-item img {
+  border-color: orangered;
+}
 
 .rgb-item input {
   width: 60px;
@@ -274,6 +312,7 @@ img {
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  border-color: orangered;
 }
 .buzzer-container {
   display: flex;
