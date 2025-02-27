@@ -1,5 +1,5 @@
 # Utiliser une image de base Node.js
-FROM node:22
+FROM node:22-slim
 
 # Définir le répertoire de travail
 WORKDIR /app
@@ -17,7 +17,7 @@ RUN npm run build
 RUN npm install -g serve
 
 # Exposer le port pour l'application Vue.js
-EXPOSE 8080
+EXPOSE 3000
 
 # Commande pour démarrer le serveur HTTP
 CMD ["serve", "-s", "dist"]

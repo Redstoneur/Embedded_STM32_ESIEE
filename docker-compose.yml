@@ -6,11 +6,10 @@ services:
     ports:
       - "8000:8000"
     devices:
-      - "/dev/ttyS0:/dev/ttyS0"
-      - "/dev/ttyAMA0:/dev/ttyAMA0"
+      - "/dev/serial0:/dev/serial0"
     environment:
         - PYTHONUNBUFFERED=1
-        - SERIAL_PORT=/dev/ttyAMA0
+        - SERIAL_PORT=/dev/serial0
         - BAUD_RATE=115200
         - MQTT_TOPIC=rfid/text
 
@@ -19,4 +18,4 @@ services:
       context: ./Front
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "80:3000"
