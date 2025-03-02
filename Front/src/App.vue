@@ -3,7 +3,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import off from "./assets/Switch_OFF.webp";
 import on from "./assets/Switch_ON.webp";
 
-const apiUrl = "http://192.168.170.90:8000/capteur";
+const apiUrl = "http://localhost:8000/capteur";
 
 const redValue = ref<number>(0);
 const greenValue = ref<number>(0);
